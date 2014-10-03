@@ -1,0 +1,419 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+SPAN A1 Configuration Guide
+\end_layout
+
+\begin_layout Author
+Hong-Bin Yoon
+\end_layout
+
+\begin_layout Author
+yoon48@illinois.edu
+\end_layout
+
+\begin_layout Author
+09/04/2014
+\end_layout
+
+\begin_layout Section
+Current System
+\end_layout
+
+\begin_layout Paragraph
+Here is my system Info
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$uname -r 
+\end_layout
+
+\begin_layout Quote
+3.15.10-201.fc20.x86_64 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Steps
+\end_layout
+
+\begin_layout Paragraph
+When the device is plugged in through USB,
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$dmesg
+\end_layout
+
+\begin_layout Quote
+[ 357.915422] usb 3-2: new full-speed USB device number 6 using xhci_hcd
+ 
+\end_layout
+
+\begin_layout Quote
+[ 358.081329]usb 3-2: New USB device found, idVendor=09d7, idProduct=0100
+ 
+\end_layout
+
+\begin_layout Quote
+[ 358.081336] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+ 
+\end_layout
+
+\begin_layout Quote
+[ 358.081340] usb 3-2: Product: Novatel GPS Receiver 
+\end_layout
+
+\begin_layout Quote
+[ 358.081343] usb 3-2: Manufacturer: Novatel Inc.
+ 
+\end_layout
+
+\begin_layout Quote
+[ 358.081346] usb 3-2: SerialNumber: BJYA14250118Z
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph*
+There is no ttyUSB* in /dev/ yet...
+ Next I've tried modprobe with elevated privileges
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$sudo /sbin/modprobe usbserial vendor=0x09d7 product=0x0100
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+But doesn't work.
+ usbserial is now compiled into the kernel rather than external module.
+ This means usbserial cannot be loaded as a module with custom vendor id.
+ Try adding
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$gvim /etc/udev/rules.d/99-novatel-span-cpt.rules
+\end_layout
+
+\begin_layout Quote
+SUBSYSTEM!="usb|usb_device", GOTO="novatel_span_cpt_end" PROGRAM="/sbin/modprobe
+ usbserial vendor=0x09d7 product=0x0100" 
+\end_layout
+
+\begin_layout Quote
+ACTION!="add", GOTO="novatel_span_cpt_end"
+\end_layout
+
+\begin_layout Quote
+# These are the vendor and product IDs from NovAtel
+\end_layout
+
+\begin_layout Quote
+ATTRS{idVendor}=="09d7", ATTRS{idProduct}=="0100", MODE="0666", SYMLINK+="gps%n"
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+then restart udev again
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$ udevadm control --reload-rules
+\end_layout
+
+\begin_layout Quote
+$ udevadm trigger
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Edit your grub2 config to add a generic serial device.
+ you need to do this as root
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$ echo 09d7 0100 >/sys/bus/usb-serial/drivers/generic/new_id
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Running dmesg again to check if we have serial converter attached
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Quote
+$ dmesg
+\end_layout
+
+\begin_layout Quote
+[13937.787777] usbserial_generic 3-2:1.0: generic converter detected 
+\end_layout
+
+\begin_layout Quote
+[13937.788314] usb 3-2: generic converter now attached to ttyUSB0 
+\end_layout
+
+\begin_layout Quote
+[13937.789571] usb 3-2: generic converter now attached to ttyUSB1 
+\end_layout
+
+\begin_layout Quote
+[13937.789663] usb 3-2: generic converter now attached to ttyUSB2
+\end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Acknowledgement
+/dev/ttyUSB* is should be there now!
+\end_layout
+
+\end_body
+\end_document

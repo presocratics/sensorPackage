@@ -49,7 +49,7 @@
     printf("Status Init %d\n",nRet);
  
     /* PixelClock */
-    UINT nPixelClockDefault = 9;
+    UINT nPixelClockDefault = 128;
     nRet = is_PixelClock(hCam, IS_PIXELCLOCK_CMD_SET,
                           (void*)&nPixelClockDefault,
                           sizeof(nPixelClockDefault));
@@ -102,9 +102,9 @@
      is_SetAutoParameter (hCam, IS_SET_ENABLE_AUTO_SENSOR_WHITEBALANCE,&enable,0);
      is_SetAutoParameter (hCam, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &disable, 0);
 */
-     double FPS, NEWFPS, fps;
-     FPS = 50;
-     is_SetFrameRate(hCam,FPS,&NEWFPS);
+     double fps;
+     //FPS = 50;
+     //is_SetFrameRate(hCam,FPS,&NEWFPS);
     /* LOOP */
 
     printf("Status Initialization SUCCESS!\n");
@@ -112,8 +112,8 @@
     {
         cv::Mat frame(h,w,CV_8UC1, NULL,w);
 
-        //if(is_FreezeVideo(hCam, IS__WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
-        if(is_CaptureVideo(hCam, IS_GET_LIVE)==IS_SUCCESS)
+        if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
+        //if(is_CaptureVideo(hCam, IS_GET_LIVE)==IS_SUCCESS)
         {
             void* pMemVoid;
             is_GetImageMem(hCam, &pMemVoid);

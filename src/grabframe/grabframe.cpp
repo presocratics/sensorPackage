@@ -24,7 +24,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <string>
 #include <stdexcept>
-
+#include <wchar.h>
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  main
@@ -114,39 +114,31 @@
     printf("Status Initialization SUCCESS!\n");
 
     int n=1;
-    char buffer[100];
+    IMAGE_FILE_PARAMS ImageFileParams;
+
+    ImageFileParams.pwchFileName = NULL;
+    ImageFileParams.pnImageID = NULL;
+    ImageFileParams.ppcImageMem = NULL;
+
+    ImageFileParams.nFileType = IS_IMG_JPG;
+    ImageFileParams.nQuality=80;
     while(1)
     {
-        cv::Mat frame(h,w,CV_8UC1, NULL,w);
-        //cv::Mat frame(h,w,CV_8UC3, NULL);
-
+        wchar_t buffer[100];
         if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
         //if(is_CaptureVideo(hCam, IS_GET_LIVE)==IS_SUCCESS)
         {
             void* pMemVoid;
             is_GetImageMem(hCam, &pMemVoid);
-            frame.data = (uchar*)pMemVoid;
-            //std::vector<cv::Mat> layers;
-            //cv::split(frame, layers);
 
             is_GetFramesPerSecond(hCam, &fps);
             printf("frame rate: %f\n",fps);
-            sprintf(buffer, "images/%010d.png",n);
+            swprintf(buffer, 100, L"images/%010d.png",n);
+            ImageFileParams.pwchFileName = buffer;
+
+            is_ImageFile( hCam, IS_IMAGE_FILE_CMD_SAVE, (void*)
+                    &ImageFileParams, sizeof(ImageFileParams) );
             
-            std::vector<int> compression_params;
-            compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-            compression_params.push_back(3);
-
-            try{
-               // imwrite(buffer, frame, compression_params);
-            }
-            catch (std::runtime_error& ex) {
-                fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
-                return 1;
-            }
-
-            //cv::imshow("frame", frame);
-            //cv::waitKey(1);
             n++;
             printf("processing image: %d\n",n);
         }

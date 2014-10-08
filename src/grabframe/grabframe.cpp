@@ -22,7 +22,8 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <opencv2/highgui/highgui.hpp>
-
+#include <string>
+#include <stdexcept>
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -60,6 +61,7 @@
     //INT colorMode = IS_CM_CBYCRY_PACKED;
     INT colorMode = IS_CM_MONO8;
     //INT colorMode = IS_CM_BGR8_PACKED;
+    //INT colorMode = IS_CM_SENSOR_RAW8;
     nRet = is_SetColorMode(hCam,colorMode);
     printf("Status SetColorMode %d\n",nRet);
    
@@ -69,8 +71,9 @@
     int w = 1600;
     int h = 1200;
     nRet = is_ImageFormat(hCam, IMGFRMT_CMD_SET_FORMAT, &formatID, 4);
+
     printf("Status ImageFormat %d\n",nRet);
-   
+ 
     /* Memory Allocation */
     char* pMem = NULL;
     int memID = 0;
@@ -103,14 +106,19 @@
      is_SetAutoParameter (hCam, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &disable, 0);
 */
      double fps;
-     //FPS = 50;
-     //is_SetFrameRate(hCam,FPS,&NEWFPS);
+     double FPS = 100;
+     double NEWFPS;
+     is_SetFrameRate(hCam,FPS,&NEWFPS);
     /* LOOP */
 
     printf("Status Initialization SUCCESS!\n");
+
+    int n=1;
+    char buffer[100];
     while(1)
     {
         cv::Mat frame(h,w,CV_8UC1, NULL,w);
+        //cv::Mat frame(h,w,CV_8UC3, NULL);
 
         if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
         //if(is_CaptureVideo(hCam, IS_GET_LIVE)==IS_SUCCESS)
@@ -118,11 +126,29 @@
             void* pMemVoid;
             is_GetImageMem(hCam, &pMemVoid);
             frame.data = (uchar*)pMemVoid;
+            //std::vector<cv::Mat> layers;
+            //cv::split(frame, layers);
+
             is_GetFramesPerSecond(hCam, &fps);
             printf("frame rate: %f\n",fps);
+            sprintf(buffer, "images/%010d.png",n);
+            
+            std::vector<int> compression_params;
+            compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+            compression_params.push_back(3);
 
-            cv::imshow("frame",frame);
-            cv::waitKey(1);
+            try{
+               // imwrite(buffer, frame, compression_params);
+            }
+            catch (std::runtime_error& ex) {
+                fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+                return 1;
+            }
+
+            //cv::imshow("frame", frame);
+            //cv::waitKey(1);
+            n++;
+            printf("processing image: %d\n",n);
         }
         else
         {
@@ -132,6 +158,7 @@
 
    
     }
+
    
     is_ExitCamera(hCam);
     return EXIT_SUCCESS;

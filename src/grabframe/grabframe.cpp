@@ -88,7 +88,17 @@
     nRet = is_SetDisplayMode (hCam, displayMode);
     printf("Status displayMode %d\n",nRet);
 
+    /* Set Auto Settings */
+    double on = 1;
+    double empty;
+    nRet = is_SetAutoParameter(hCam, IS_SET_ENABLE_AUTO_WHITEBALANCE, &on, &empty);
+    printf("Auto White Balance %d\n", nRet);
 
+    nRet = is_SetAutoParameter(hCam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty);
+    printf("Auto Gain %d\n", nRet);
+
+
+     
     // is_SetExternalTrigger (HIDS hCam, INT nTriggerMode) // TODO: use when
     // external trigger
     //
@@ -120,22 +130,28 @@
     ImageFileParams.pnImageID = NULL;
     ImageFileParams.ppcImageMem = NULL;
 
-    ImageFileParams.nFileType = IS_IMG_JPG;
-    ImageFileParams.nQuality=80;
+    ImageFileParams.nFileType = IS_IMG_BMP;
+    ImageFileParams.nQuality=100;
+
+    nRet = is_CaptureVideo(hCam, IS_WAIT)==IS_SUCCESS;
+    printf("isCpature %d\n",nRet);
     while(1)
     {
         wchar_t buffer[100];
-        if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
-        //if(is_CaptureVideo(hCam, IS_GET_LIVE)==IS_SUCCESS)
+        //if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
+        if(1)
         {
+            cv::Mat frame(h,w,CV_8UC1);
             void* pMemVoid;
             is_GetImageMem(hCam, &pMemVoid);
-
+            frame.data = (uchar*) pMemVoid;
             is_GetFramesPerSecond(hCam, &fps);
             printf("frame rate: %f\n",fps);
-            swprintf(buffer, 100, L"images/%010d.png",n);
-            ImageFileParams.pwchFileName = buffer;
 
+            swprintf(buffer, 100, L"images/%010d.bmp",n);
+            ImageFileParams.pwchFileName = buffer;
+            cv::imshow("frame", frame);
+            cv::waitKey(1);
             is_ImageFile( hCam, IS_IMAGE_FILE_CMD_SAVE, (void*)
                     &ImageFileParams, sizeof(ImageFileParams) );
             

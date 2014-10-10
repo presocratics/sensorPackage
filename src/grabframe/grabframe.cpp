@@ -135,12 +135,14 @@
 
     nRet = is_CaptureVideo(hCam, IS_WAIT)==IS_SUCCESS;
     printf("isCpature %d\n",nRet);
+    is_EnableEvent( hCam, IS_SET_EVENT_FRAME );
     while(1)
     {
         wchar_t buffer[100];
         //if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS) // use trigger e.g. IS_SET_TRIGGER_LO_HI()
         if(1)
         {
+            is_WaitEvent( hCam, IS_SET_EVENT_FRAME, 1000 );
             cv::Mat frame(h,w,CV_8UC1);
             void* pMemVoid;
             is_GetImageMem(hCam, &pMemVoid);

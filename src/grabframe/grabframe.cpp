@@ -136,9 +136,9 @@ void err_sys(INT n)
 
 
      double fps;
-     double FPS = 100;
-     double NEWFPS;
-     is_SetFrameRate(hCam,FPS,&NEWFPS);
+     //double FPS = 100;
+     //double NEWFPS;
+     //is_SetFrameRate(hCam,FPS,&NEWFPS);
     /* LOOP */
 
     int n=1;
@@ -151,9 +151,14 @@ void err_sys(INT n)
     ImageFileParams.nFileType = IS_IMG_BMP;
     ImageFileParams.nQuality=100;
 
-    nRet = is_CaptureVideo(hCam, IS_WAIT)==IS_SUCCESS;
-    //nRet =  is_SetExternalTrigger (hCam, IS_SET_TRIGGER_LO_HI);
-    printf("isCpature %d\n",nRet);
+    
+    nRet =  is_SetExternalTrigger (hCam, IS_SET_TRIGGER_LO_HI);
+    printf("isSetTrigger %d\n",nRet);
+    
+    nRet =  is_SetTimeout (hCam, IS_TRIGGER_TIMEOUT, 10000);
+    printf("isTriggerTimeout %d\n",nRet);
+    printf("passed EnableEvent\n");
+/*  
     UINT nMode;
 
     nRet = is_IO(hCam, IS_GPIO_INPUT , (void*)&nMode, sizeof(nMode));
@@ -169,10 +174,18 @@ void err_sys(INT n)
     printf("IO_gpio_1 %d\n",nRet);
     sleep(1);
 
+*/
+    
     is_EnableEvent( hCam, IS_SET_EVENT_FRAME );
+    
+    
+    
 
+
+    nRet = is_CaptureVideo(hCam, IS_DONT_WAIT)==IS_SUCCESS;
+     
     /* Check Trigger Mode */
-
+/*  
     INT nSupportedTriggerModes = is_SetExternalTrigger(hCam, IS_GET_SUPPORTED_TRIGGER_MODE);
     
     if ((nSupportedTriggerModes & IS_SET_TRIGGER_SOFTWARE) == IS_SET_TRIGGER_SOFTWARE)
@@ -189,7 +202,7 @@ void err_sys(INT n)
     {
         printf("using LO_HI Trigger \n");
     }
-
+ */
     /* #define IO_FLASH_MODE_OFF                   0
 #define IO_FLASH_MODE_TRIGGER_LO_ACTIVE     1
 #define IO_FLASH_MODE_TRIGGER_HI_ACTIVE     2
@@ -201,9 +214,11 @@ void err_sys(INT n)
     {
         wchar_t buffer[100];
         //if(is_FreezeVideo(hCam, IS_WAIT)==IS_SUCCESS)
-        if(1)
+        //if(1)
         {
+            printf("waiting for trigger\n");
             is_WaitEvent( hCam, IS_SET_EVENT_FRAME, 1000000 );
+            printf("waited\n");
             cv::Mat frame(h,w,CV_8UC1);
             void* pMemVoid;
             is_GetImageMem(hCam, &pMemVoid);
@@ -221,7 +236,7 @@ void err_sys(INT n)
             n++;
             printf("processing image: %d\n",n);
         }
-        else
+        //else
         {
             //printf("-(!) ERROR unable to freeze frame\n");
 

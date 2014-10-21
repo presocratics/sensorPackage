@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
     fflush(gpsFile);
     tcflush(gps, TCIFLUSH);
 
-    int i;
+    int i=0;
     while(1)
     {
         char buf[MAXMSG];
@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
         if( getLatestTimestamp(gpsFile, buf)==-1 )
             fprintf(stderr, "bad CRC\n");
         else
-            printf("%d,%s\n", i, buf);
+            printf("%d,%s\n", ++i, buf);
         fflush(gpsFile);
     }
     if( write( gps, UNLOGALL, strlen(UNLOGALL) )==-1 )

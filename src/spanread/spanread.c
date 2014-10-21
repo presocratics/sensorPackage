@@ -237,6 +237,7 @@ int main( int argc, char** argv )
         exit(EXIT_FAILURE);
     }
     int spanFd; /* File pointer to device */
+    FILE *spanFile;
     ssize_t rs;
     FILE** logFiles;
     char **prams;
@@ -258,6 +259,7 @@ int main( int argc, char** argv )
     /* Open the device */
     if( (spanFd=open( prams[DEVICE], O_RDWR | O_NOCTTY ))==-1 )
         err_sys("open %s", prams[DEVICE]);
+    spanFile = fdopen( spanFd, "r" );
     /* sets to 115200, 8N1 */
     set_interface_attribs( spanFd, B115200, 0);
 
@@ -306,8 +308,9 @@ int main( int argc, char** argv )
         memset(&buf[0], 0, sizeof(buf));
             
         /* read line */
-        if( (numChars=read( spanFd, &buf, MAXMSG ))==-1 )
-            err_sys("read serial");
+        //if( (numChars=read( spanFd, &buf, MAXMSG ))==-1 )
+         //   err_sys("read serial");
+        fgets( buf, MAXMSG, spanFile );
                     
         /* Checksum */
         if( !isValid( buf ) )

@@ -14,7 +14,7 @@
 #define UNLOGALL "unlogall\r\n"            /*  */
 #define ENABLE_EVENT_IN "EVENTINCONTROL MARK2 ENABLE\r\n"            /*  */
 #define LOG_EVENT_IN "LOG MARK2TIMEA ONNEW\r\n"            /*  */
-#define ENABLE_TRIGGER "EVENTOUTCONTROL MARK1 ENABLE POSITIVE 500000000 500000000\r\n"            /*  */
+#define ENABLE_TRIGGER "EVENTOUTCONTROL MARK1 ENABLE POSITIVE 100000000 100000000\r\n"            /*  */
 
 #define SEQSIZE 10            /*  */
 #define MAXMSG 1024            /*  */

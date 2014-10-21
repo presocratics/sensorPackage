@@ -279,10 +279,11 @@ int main(int argc, char* argv[])
     ImageFileParams.ppcImageMem = NULL;
     ImageFileParams.nFileType = IS_IMG_BMP;
     ImageFileParams.nQuality=100;
-
     fflush(gpsFile);
-    int i;
-    while(i++<15)
+    tcflush(gps, TCIFLUSH);
+
+    int i=0;
+    while(1)
     {
         char buf[MAXMSG];
         wchar_t buffer[100];
@@ -305,74 +306,15 @@ int main(int argc, char* argv[])
         }
         if( getLatestTimestamp(gpsFile, buf)==-1 )
             fprintf(stderr, "bad CRC\n");
-        //else
-            printf("%s\n", buf);
-        //saveImage();
+        else
+            printf("%d,%s\n", ++i, buf);
         fflush(gpsFile);
     }
+    if( write( gps, UNLOGALL, strlen(UNLOGALL) )==-1 )
+        err_sys("write: %s", UNLOGALL);
     close(gps);
     is_ExitCamera(camera);
     printf("success\n");
-
-    /*
-    HIDS hCam = 1;
-    printf("Success-Code: %d\n",IS_SUCCESS);
-    */
-    /*
-    *=====================================
-    *  CAMERA INITIALIZATION
-    *=====================================
-    */
-    /* Initialize Camera */
-    /*
-    INT nRet = is_InitCamera (&hCam, NULL);
-    */
-
-    /* Set ColorMode */
-    /*
-    INT colorMode = IS_CM_MONO8;
-    nRet = is_SetColorMode(hCam,colorMode);
-    printf("Status SetColorMode %d\n",nRet);
-
-    int w = 1600;
-    int h = 1200;
-    */
- 
-    /* Memory Allocation */
-    /*
-    char* pMem = NULL;
-    int memID = 0;
-    nRet = is_AllocImageMem(hCam, w, h, 8, &pMem, &memID);
-    printf("Status AllocImage %d\n",nRet);
-
-    nRet = is_SetImageMem(hCam, pMem, memID);
-    printf("Status SetImageMem %d\n",nRet);
-   
-    if( !is_SetExternalTrigger( hCam, IS_SET_TRIGGER_LO_HI)==IS_SUCCESS)
-        printf("cannot set external trigger\n");
-    is_SetTimeout( hCam, IS_TRIGGER_TIMEOUT, 100 );
-    is_EnableEvent( hCam, IS_SET_EVENT_FRAME );
-
-    is_CaptureVideo( hCam, IS_DONT_WAIT );
-    if( is_CaptureVideo( hCam, IS_GET_LIVE)==TRUE )
-        printf("capturing\n");
-    while(1)
-    {
-        int stat = is_WaitEvent(hCam, IS_SET_EVENT_FRAME, 1000);
-        if(stat == IS_TIMED_OUT){
-            printf("CameraIDSImaging: Frame timeout!\n");
-        }
-        else
-        {
-            printf("So good\n");
-        }
-    }
-
-   
-    is_ExitCamera(hCam);
-    return EXIT_SUCCESS;
-    */
-
 }				/* ----------  end of function main  ---------- */
 
 

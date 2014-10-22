@@ -103,13 +103,15 @@ initCam ()
     int memoryID[SEQSIZE];
     unsigned int pixelClockRange[3];
     unsigned int maxPixelClock;
-
+    double on = 1;
+    double empty;
     cam = (HIDS) 0;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
         err_ueye(cam, rv);
     if( (rv=is_SetColorMode( cam, IS_CM_MONO8))!=IS_SUCCESS )
         err_ueye(cam, rv);
-
+    if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty))!=IS_SUCCESS )
+        err_ueye(cam, rv);
     bitsPerPixel=8;
     frameWidth=1600;
     frameHeight=1200;

@@ -56,8 +56,8 @@ initGPS ( char* device, int *spanFD )
         err_sys("open: %s", device);
     set_interface_attribs( *spanFD, B115200, 0 );
     // turn off current logging
-    if( write( *spanFD, UNLOGALL, strlen(UNLOGALL) )==-1 )
-        err_sys("write: %s", UNLOGALL);
+    //if( write( *spanFD, UNLOGALL, strlen(UNLOGALL) )==-1 )
+    //    err_sys("write: %s", UNLOGALL);
     // enable input event port
     if( write( *spanFD, ENABLE_EVENT_IN, strlen(ENABLE_EVENT_IN) )==-1 )
         err_sys("write: %s", ENABLE_EVENT_IN);

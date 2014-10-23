@@ -328,7 +328,7 @@ int main( int argc, char** argv )
         else if( prams[type]!=NULL )
         {
             fprintf( stderr, "File %d should be open. Trying to reopen.\n", type );
-            if( (logFiles[type]=fopen(prams[type],"w"))==NULL )
+            if( (logFiles[type]=fopen(prams[type],"a"))==NULL )
                 err_sys("Cannot open %s", prams[type]); // TODO don't crash, just warn
         }
         printf("%s\n", buf); // Prints all to stdout

@@ -5,7 +5,7 @@ CXXFLAGS += $(shell pkg-config --cflags opencv)
 LIBS = -lueye_api
 LIBS += $(shell pkg-config --libs opencv)
 
-slam: grabframe.o ourerr.o
+grabframe: grabframe.o ourerr.o
 	$(CXX) -o ../../bin/grabframe grabframe.o ourerr.o $(CXXFLAGS) $(LIBS) 
 
 .cpp.o:

@@ -21,6 +21,7 @@
 #include <uEye.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <string>
 #include <stdexcept>
@@ -136,6 +137,7 @@
     nRet = is_CaptureVideo(hCam, IS_WAIT)==IS_SUCCESS;
     printf("isCpature %d\n",nRet);
     is_EnableEvent( hCam, IS_SET_EVENT_FRAME );
+    printf("\n PRESS 's' to SAVE IMAGE... \n");
     while(1)
     {
         wchar_t buffer[100];
@@ -148,17 +150,19 @@
             is_GetImageMem(hCam, &pMemVoid);
             frame.data = (uchar*) pMemVoid;
             is_GetFramesPerSecond(hCam, &fps);
-            printf("frame rate: %f\n",fps);
+            //printf("frame rate: %f\n",fps);
 
             swprintf(buffer, 100, L"images/%010d.bmp",n);
             ImageFileParams.pwchFileName = buffer;
             cv::imshow("frame", frame);
-            cv::waitKey(1);
-            is_ImageFile( hCam, IS_IMAGE_FILE_CMD_SAVE, (void*)
-                    &ImageFileParams, sizeof(ImageFileParams) );
-            
-            n++;
-            printf("processing image: %d\n",n);
+            char key = cv::waitKey(100);
+            if(key == 's')
+            {
+                is_ImageFile( hCam, IS_IMAGE_FILE_CMD_SAVE, (void*)
+                        &ImageFileParams, sizeof(ImageFileParams) );
+                printf("processing image: %d\n",n);
+                n++;
+            }
         }
         else
         {

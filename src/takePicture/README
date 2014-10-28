@@ -1,0 +1,3 @@
+./takePicture
+
+takePicture displays current camera view and saves current frame when 's' is pressed.

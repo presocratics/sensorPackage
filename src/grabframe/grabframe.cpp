@@ -148,7 +148,7 @@ initCam ()
     }
 
     // Set external trigger
-    if( (rv=is_SetExternalTrigger(cam, IS_SET_TRIGGER_LO_HI))!=IS_SUCCESS )
+    if( (rv=is_SetExternalTrigger(cam, IS_SET_TRIGGER_OFF))!=IS_SUCCESS )
         err_ueye(cam, rv);
 
     // Begin transmission
@@ -266,13 +266,13 @@ int main(int argc, char* argv[])
         printf("Usage: %s device\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    int gps;
-    FILE *gpsFile;
+    //int gps;
+    //FILE *gpsFile;
     HIDS camera;
     IMAGE_FILE_PARAMS ImageFileParams;
 
-    initGPS( argv[1], &gps );
-    gpsFile = fdopen( gps, "r" );
+    //initGPS( argv[1], &gps );
+    //gpsFile = fdopen( gps, "r" );
 
     camera = initCam( );
 
@@ -281,40 +281,49 @@ int main(int argc, char* argv[])
     ImageFileParams.ppcImageMem = NULL;
     ImageFileParams.nFileType = IS_IMG_BMP;
     ImageFileParams.nQuality=100;
-    fflush(gpsFile);
-    tcflush(gps, TCIFLUSH);
+    //fflush(gpsFile);
+    //tcflush(gps, TCIFLUSH);
 
     int i=0;
-    while(1)
+    while(i<10)
     {
-        char buf[MAXMSG];
+        uint64_t framenumber;
+        //char buf[MAXMSG];
         wchar_t buffer[100];
         int rv;
         char *currentFrame;
+        int frameId;
         if( (rv=is_WaitEvent(camera, IS_SET_EVENT_FRAME, INFINITE))!=IS_SUCCESS )
             err_ueye(camera, rv);
-        if( (rv=is_GetActSeqBuf(camera, NULL, NULL, &currentFrame))!=IS_SUCCESS )
+        if( (rv=is_GetActiveImageMem(camera, &currentFrame, &frameId))!=IS_SUCCESS )
             err_ueye(camera, rv);
+        //if( (rv=is_GetActSeqBuf(camera, NULL, NULL, &currentFrame))!=IS_SUCCESS )
+         //   err_ueye(camera, rv);
         if( (rv=is_LockSeqBuf(camera, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
             err_ueye(camera, rv);
         if( (rv=is_UnlockSeqBuf(camera, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
             err_ueye(camera, rv);
-        swprintf(buffer, 100, L"images/%010d.bmp",i);
+        swprintf(buffer, 100, L"images/%010d.bmp",++i);
         ImageFileParams.pwchFileName = buffer;
         if( (rv=is_ImageFile( camera, IS_IMAGE_FILE_CMD_SAVE, (void*) &ImageFileParams,
                 sizeof(ImageFileParams) ))!=IS_SUCCESS )
         {
             err_ueye(camera, rv);
         }
-        if( getLatestTimestamp(gpsFile, buf)==-1 )
-            fprintf(stderr, "bad CRC\n");
-        else
-            printf("%d,%s\n", ++i, buf);
-        fflush(gpsFile);
+        UEYEIMAGEINFO ImageInfo;
+        if( (rv=is_GetImageInfo( camera, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
+            err_ueye(camera, rv);
+        framenumber=ImageInfo.u64FrameNumber;
+        printf("%lu\n", framenumber);
+     //   if( getLatestTimestamp(gpsFile, buf)==-1 )
+      //      fprintf(stderr, "bad CRC\n");
+       // else
+        //    printf("%d,%s\n", ++i, buf);
+        //fflush(gpsFile);
     }
-    if( write( gps, UNLOGALL, strlen(UNLOGALL) )==-1 )
-        err_sys("write: %s", UNLOGALL);
-    close(gps);
+    //if( write( gps, UNLOGALL, strlen(UNLOGALL) )==-1 )
+     //   err_sys("write: %s", UNLOGALL);
+    //close(gps);
     is_ExitCamera(camera);
     printf("success\n");
 }				/* ----------  end of function main  ---------- */

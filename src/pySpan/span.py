@@ -6,6 +6,13 @@
 # Usage: ./span.py [serial device]
 import serial
 import sys
+import signal
+
+ser=serial.Serial()
+
+def signal_handler(signal, frame):
+    ser.close()
+    sys.exit(0)
 
 def connectToGPS(device="/dev/ttyUSB0"):
     """Continually attempt to connect to the GPS"""
@@ -13,8 +20,7 @@ def connectToGPS(device="/dev/ttyUSB0"):
         ser=serial.Serial(device, baudrate=115200, timeout=10)
     except serial.serialutil.SerialException, e:
         print "Cannot connect to GPS device."
-        print e
-        sys.exit()
+        sys.exit(e)
     return ser
 
 def waitForFix(ser):
@@ -51,12 +57,14 @@ def main():
         ser=connectToGPS(sys.argv[1])
     else:
         ser=connectToGPS()
+    signal.signal(signal.SIGINT, signal_handler)
     waitForFix(ser)
     setInitAttitude(ser)
     logINSPVAS(ser, 1)  # 1Hz
     logACC(ser, .02) # 50Hz
     print "Logging has begun. cat or tail the device to read."
     ser.close()
+    sys.exit(0)
 
 if __name__=='__main__':
     main()

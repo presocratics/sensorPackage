@@ -3,6 +3,7 @@
 # Martin Miller
 # Created: 2014/12/22
 # Uses python for the serial connection to the GPS
+# Usage: ./span.py [serial device]
 import serial
 import sys
 
@@ -46,12 +47,15 @@ def logACC(ser, rate):
     return
 
 def main():
-    ser=connectToGPS()
+    if len(sys.argv)>1:
+        ser=connectToGPS(sys.argv[1])
+    else:
+        ser=connectToGPS()
     waitForFix(ser)
     setInitAttitude(ser)
     logINSPVAS(ser, 1)  # 1Hz
     logACC(ser, .02) # 50Hz
-    print "Logging has begun. cat or tail the device to read"
+    print "Logging has begun. cat or tail the device to read."
     ser.close()
 
 if __name__=='__main__':

@@ -37,9 +37,14 @@ def waitForFix(ser):
     print "Finesteering achieved"
     return
 
-def setInitAttidue(ser):
+def setInitAttitude(ser):
     """Initializes attitude"""
     ser.write("SETINITATTITUDE 0 0 90 5 5 5\r\n")
+    return
+
+def unlogall(ser):
+    """Turns off all other logging"""
+    ser.write("unlogall\r\n")
     return
 
 def logINSPVASA(ser, rate):
@@ -58,9 +63,10 @@ def main():
     else:
         ser=connectToGPS()
     signal.signal(signal.SIGINT, signal_handler)
+    unlogall(ser)
     waitForFix(ser)
     setInitAttitude(ser)
-    logINSPVAS(ser, 1)  # 1Hz
+    logINSPVASA(ser, 1)  # 1Hz
     logACC(ser, .02) # 50Hz
     print "Logging has begun. cat or tail the device to read."
     ser.close()

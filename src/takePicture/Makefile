@@ -5,8 +5,8 @@ CXXFLAGS += $(shell pkg-config --cflags opencv)
 LIBS = -lueye_api
 LIBS += $(shell pkg-config --libs opencv)
 
-grabframe: grabframe.o ourerr.o
-	$(CXX) -o ../../bin/grabframe grabframe.o ourerr.o $(CXXFLAGS) $(LIBS) 
+takePicture: takePicture.o
+	$(CXX) -o ../../bin/takePicture takePicture.o $(CXXFLAGS) $(LIBS) 
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -14,5 +14,5 @@ grabframe: grabframe.o ourerr.o
 .PHONY: clean
 clean:
 	rm -f *.o
-	rm -f ../../bin/grabframe
+	rm -f ../../bin/takePicture
 

@@ -12,7 +12,7 @@ ser=serial.Serial()
 
 def signal_handler(signal, frame):
     ser.close()
-    sys.exit(0)
+    sys.exit("Killed by user.")
 
 def connectToGPS(device="/dev/ttyUSB0"):
     """Continually attempt to connect to the GPS"""

@@ -22,8 +22,8 @@
 
 int set_interface_attribs(int fd, int speed, int parity);
 void initGPS ( char* device, int *spanFD );
-void err_ueye ( HIDS cam, int result );
-HIDS initCam ();
+void err_ueye ( HIDS cam, int result, char *msg );
+HIDS initCam ( int cam_num );
 unsigned long CRC32Value(int i);
 unsigned long CalculateBlockCRC32( unsigned long ulCount, unsigned char *ucBuffer );
 void extractMsg( char *buf, char **msg, char **crc );

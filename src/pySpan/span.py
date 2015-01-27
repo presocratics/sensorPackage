@@ -3,7 +3,11 @@
 # Martin Miller
 # Created: 2014/12/22
 # Uses python for the serial connection to the GPS
-# Usage: ./span.py [serial device]
+# Usage: ./span.py [-I] [--fps N] [-d serial device]
+# -d	Specify serial device (default: /dev/ttyUSB0)
+# -I	turns off image handling
+# -fps	set fps of trigger output. (default: 25)
+from optparse import OptionParser
 import serial
 import sys
 import signal
@@ -62,8 +66,7 @@ def logImages(ser, fps):
     ser.write("MARK2TIMEA ONNEW\r\n")
 
     """Convert fps to nanosecond half period"""
-    T=int(500e6/fps)
-    print("half period: %d" % (T))
+    T=int(500e6/int(fps))
 
     ser.write("EVENTOUTCONTROL MARK1 ENABLE POSITIVE %d %d\r\n" % (T, T))
 
@@ -74,13 +77,20 @@ def logACC(ser, rate):
     return
 
 def main():
-    if len(sys.argv)>1:
-        ser=connectToGPS(sys.argv[1])
-    else:
-        ser=connectToGPS()
+    parser=OptionParser()
+    parser.add_option("-d", "--device", dest="device", action="store",
+                      help="Specify serial device.", default="/dev/ttyUSB0")
+    parser.add_option("-I", "--no-image", dest="doImage", action="store_false",
+                      help="Turn off image handling.", default=True)
+    parser.add_option("-f", "--fps", dest="fps", action="store",
+                      help="Set fps of trigger output.", default=25)
+
+    (options, args)=parser.parse_args()
+    ser=connectToGPS(options.device)
     signal.signal(signal.SIGINT, signal_handler)
     unlogall(ser)
-    logImages(ser, 25)
+    if options.doImage is True:
+        logImages(ser, options.fps)
     waitForFix(ser)
     setInitAttitude(ser)
     logINSPVASA(ser, 1)  # 1Hz

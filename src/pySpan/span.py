@@ -28,6 +28,7 @@ def waitForFix(ser):
     while 1:
         ser.write("LOG usb1 BESTPOSA once\r\n")
         while 1:
+#TODO test for timeout
             msg=ser.readline(300)
             if msg.find("BESTPOSA")!=-1:
                 break
@@ -52,6 +53,21 @@ def logINSPVASA(ser, rate):
     ser.write("LOG usb1 INSPVASA ontime %f\r\n" % (rate))
     return
 
+def logImages(ser, fps):
+    """Sets up external trigger output at fps and turns on 2 trigger inputs"""
+    ser.write("EVENTINCONTROL MARK1 ENABLE\r\n")
+    ser.write("EVENTINCONTROL MARK2 ENABLE\r\n")
+
+    ser.write("MARK1TIMEA ONNEW\r\n")
+    ser.write("MARK2TIMEA ONNEW\r\n")
+
+    """Convert fps to nanosecond half period"""
+    T=int(500e6/fps)
+    print("half period: %d" % (T))
+
+    ser.write("EVENTOUTCONTROL MARK1 ENABLE POSITIVE %d %d\r\n" % (T, T))
+
+
 def logACC(ser, rate):
     """Turns on acceleration logging"""
     ser.write("LOG usb1 CORRIMUDATASA ontime %f\r\n" % (rate))
@@ -64,6 +80,7 @@ def main():
         ser=connectToGPS()
     signal.signal(signal.SIGINT, signal_handler)
     unlogall(ser)
+    logImages(ser, 25)
     waitForFix(ser)
     setInitAttitude(ser)
     logINSPVASA(ser, 1)  # 1Hz

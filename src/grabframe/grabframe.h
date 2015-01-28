@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <sys/fcntl.h>
 #include <string.h>
+#include <time.h>
+#include <sys/stat.h>
 
 #define UNLOGALL "unlogall\r\n"            /*  */
 #define ENABLE_EVENT_IN "EVENTINCONTROL MARK2 ENABLE\r\n"            /*  */
@@ -22,5 +24,5 @@
 
 void err_ueye ( HIDS cam, int result, char *msg );
 HIDS initCam ( int cam_num );
-void getImage ( HIDS cam );
+void getImage ( HIDS cam, char *dir);
 #endif   /* ----- #ifndef grabframe_INC  ----- */

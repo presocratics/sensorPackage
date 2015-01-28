@@ -124,7 +124,7 @@ initCam ( int cam_num )
  * =====================================================================================
  */
     void
-getImage ( HIDS cam )
+getImage ( HIDS cam, char *dir )
 {
     wchar_t buffer[100];
     IMAGE_FILE_PARAMS ImageFileParams;
@@ -181,7 +181,7 @@ getImage ( HIDS cam )
             timedout);
 
     // Save the image.
-    swprintf(buffer, 100, L"images/cam%d-%010d.bmp", cam, framenumber);
+    swprintf(buffer, 100, L"%s/%010d.bmp", dir, framenumber);
     ImageFileParams.pwchFileName = buffer;
     if( (rv=is_ImageFile( cam, IS_IMAGE_FILE_CMD_SAVE, (void*) &ImageFileParams,
             sizeof(ImageFileParams) ))!=IS_SUCCESS )
@@ -204,6 +204,23 @@ int main(int argc, char* argv[])
 {
     int num_cams;
     HIDS *camera;
+    char parentdir[100];
+    char **dirs;
+
+    // Get time for image storage dir.
+    char timestr[200];
+    time_t t;
+    struct tm *tmp;
+
+    t=time(NULL);
+    tmp=localtime(&t);
+
+    if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 )
+        err_sys("strftime");
+    sprintf(parentdir, "./images/%s", timestr);
+    if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
+        err_sys("mkdir %s", parentdir);
+
     if( is_GetNumberOfCameras(&num_cams)!=IS_SUCCESS )
     {
         fprintf(stderr, "Error retrieving number of cameras.\n");
@@ -215,9 +232,28 @@ int main(int argc, char* argv[])
         fprintf ( stderr, "\ndynamic memory allocation failed\n" );
         exit (EXIT_FAILURE);
     }
+    
+    dirs	= (char **) calloc ( (size_t)(num_cams), sizeof(char*) );
+    if ( dirs==NULL ) {
+        fprintf ( stderr, "\ndynamic memory allocation failed\n" );
+        exit (EXIT_FAILURE);
+    }
 
     int cami;
-    for( cami=0; cami<num_cams; ++cami ) camera[cami]=initCam(cami+1);
+    for( cami=0; cami<num_cams; ++cami ) 
+    {
+        camera[cami]=initCam(cami+1);
+        // Prepare directories to store images
+        
+        dirs[cami]	= (char *)calloc ( (size_t)(100), sizeof(char) );
+        if ( dirs[cami]==NULL ) {
+            fprintf ( stderr, "\ndynamic memory allocation failed\n" );
+            exit (EXIT_FAILURE);
+        }
+        sprintf(dirs[cami], "%s/%d", parentdir, cami+1);
+        if( mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
+            err_sys("mkdir %s", dirs[cami]);
+    }
 
     int i=0;
     while(i<20)
@@ -225,14 +261,20 @@ int main(int argc, char* argv[])
         ++i;
         for( cami=0; cami<num_cams; ++cami )
         {
-            getImage(camera[cami]);
+            getImage(camera[cami], dirs[cami]);
         }
        
     }
-    for( cami=0; cami<num_cams; ++cami ) is_ExitCamera(camera[cami]);
+    for( cami=0; cami<num_cams; ++cami ) 
+    {
+        is_ExitCamera(camera[cami]);
+        free (dirs[cami]);
+    }
 
     free (camera);
     camera	= NULL;
+    free (dirs);
+    dirs	= NULL;
     printf("success\n");
 }				/* ----------  end of function main  ---------- */
 

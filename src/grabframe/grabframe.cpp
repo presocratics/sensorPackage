@@ -130,6 +130,7 @@ getImage ( HIDS cam )
     IMAGE_FILE_PARAMS ImageFileParams;
     int rv;
     char *currentFrame;
+    int timedout;
 
     int frameId;
     uint64_t framenumber;
@@ -146,9 +147,16 @@ getImage ( HIDS cam )
     // Manage memory for the next frame.
     if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
         err_ueye(cam, rv, "GetActSeqBuf.");
-    is_ForceTrigger(cam);		
-    if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 500))!=IS_SUCCESS )
+    //is_ForceTrigger(cam);		
+    timedout=0;
+    if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 500))==IS_NO_SUCCESS )
+    {
         err_ueye(cam, rv, "Wait Event.");
+    }
+    else if( rv==IS_TIMED_OUT )
+    {
+        timedout=1;
+    }
     if( (rv=is_LockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "LockSeqBuf.");
 
@@ -160,7 +168,7 @@ getImage ( HIDS cam )
     u64TimestampDevice = ImageInfo.u64TimestampDevice;  
 
     // Print logging info.
-    printf("%d, %lu, %020ld, %02d/%02d/%04d %02d:%02d:%02d.%03d\n", 
+    printf("%d,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d,%d\n", 
             cam,
             framenumber,
             u64TimestampDevice,
@@ -170,7 +178,8 @@ getImage ( HIDS cam )
             ImageInfo.TimestampSystem.wHour,
             ImageInfo.TimestampSystem.wMinute,
             ImageInfo.TimestampSystem.wSecond,
-            ImageInfo.TimestampSystem.wMilliseconds);
+            ImageInfo.TimestampSystem.wMilliseconds,
+            timedout);
 
     // Save the image.
     swprintf(buffer, 100, L"images/cam%d-%010d.bmp", cam, framenumber);

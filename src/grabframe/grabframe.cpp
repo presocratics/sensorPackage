@@ -114,12 +114,8 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "SetColorMode.");
     if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty))!=IS_SUCCESS )
         err_ueye(cam, rv, "SetAutoGain.");
-    if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_SENSOR_GAIN, &on, &empty))!=IS_SUCCESS )
-        err_ueye(cam, rv, "SetAutoSensorGain.");
     if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_SHUTTER, &on, &empty))!=IS_SUCCESS )
         err_ueye(cam, rv, "EnableAutoShutter.");
-    if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &on, &empty))!=IS_SUCCESS )
-        err_ueye(cam, rv, "EnableAutoSensorShutter.");
     bitsPerPixel=8;
     frameWidth=1600;
     frameHeight=1200;
@@ -315,11 +311,6 @@ getImage ( HIDS cam, wchar_t *buffer )
  */
 int main(int argc, char* argv[])
 {
-    if( argc!=2 )
-    {
-        printf("Usage: %s device\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
     HIDS camera1, camera2;
 
     camera1 = initCam(1);
@@ -327,7 +318,7 @@ int main(int argc, char* argv[])
 
 
     int i=0;
-    while(i<10)
+    while(i<30)
     {
         //int frameId;
         //uint64_t framenumber;

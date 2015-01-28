@@ -16,7 +16,7 @@ then
 fi
 
 ## run span and check if it worked.
-sudo python span.py $device
+sudo python span.py -f 5 $device
 if [ ! $? -eq 0 ]
 then
     echo "Span failed."

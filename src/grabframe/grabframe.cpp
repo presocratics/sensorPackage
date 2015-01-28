@@ -130,17 +130,21 @@ getImage ( HIDS cam, wchar_t *buffer )
     int rv;
     char *currentFrame;
 
+    int frameId;
+    uint64_t framenumber;
+    UEYEIMAGEINFO ImageInfo;
+
     ImageFileParams.pwchFileName = NULL;
     ImageFileParams.pnImageID = NULL;
     ImageFileParams.ppcImageMem = NULL;
     ImageFileParams.nFileType = IS_IMG_BMP;
     ImageFileParams.nQuality=100;
 
+    if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
+        err_ueye(cam, rv, "GetActSeqBuf.");
     is_ForceTrigger(cam);		
     if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 500))!=IS_SUCCESS )
         err_ueye(cam, rv, "Wait Event.");
-    if( (rv=is_GetActSeqBuf(cam, NULL, NULL, &currentFrame))!=IS_SUCCESS )
-        err_ueye(cam, rv, "GetActSeqBuf.");
     if( (rv=is_LockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "LockSeqBuf.");
 
@@ -150,6 +154,13 @@ getImage ( HIDS cam, wchar_t *buffer )
     {
         err_ueye(cam, rv, "Save image.");
     }
+    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
+        err_ueye(cam, rv, "GetImageInfo.");
+    framenumber=ImageInfo.u64FrameNumber;
+    uint64_t u64TimestampDevice;
+    u64TimestampDevice = ImageInfo.u64TimestampDevice;  
+    printf( "%020ld \n",u64TimestampDevice);
+    printf("%lu\n", framenumber);
 
     if( (rv=is_UnlockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "UnlockSeqBuf.");
@@ -182,10 +193,8 @@ int main(int argc, char* argv[])
     for( cami=0; cami<num_cams; ++cami ) camera[cami]=initCam(cami+1);
 
     int i=0;
-    while(i<30)
+    while(i<20)
     {
-        //int frameId;
-        //uint64_t framenumber;
         ++i;
         for( cami=0; cami<num_cams; ++cami )
         {
@@ -193,11 +202,6 @@ int main(int argc, char* argv[])
             swprintf(buffer, 100, L"images/cam%d-%010d.bmp", cami, i);
             getImage(camera[cami], buffer);
         }
-        //UEYEIMAGEINFO ImageInfo;
-        //if( (rv=is_GetImageInfo( camera, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
-        //    err_ueye(camera, rv);
-        //framenumber=ImageInfo.u64FrameNumber;
-        //printf("%lu\n", framenumber);
        
     }
     for( cami=0; cami<num_cams; ++cami ) is_ExitCamera(camera[cami]);

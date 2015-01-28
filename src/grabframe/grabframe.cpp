@@ -114,8 +114,8 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "SetColorMode.");
     if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty))!=IS_SUCCESS )
         err_ueye(cam, rv, "SetAutoGain.");
-    if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_SHUTTER, &on, &empty))!=IS_SUCCESS )
-        err_ueye(cam, rv, "EnableAutoShutter.");
+    //if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_SHUTTER, &on, &empty))!=IS_SUCCESS )
+     //   err_ueye(cam, rv, "EnableAutoShutter.");
     bitsPerPixel=8;
     frameWidth=1600;
     frameHeight=1200;
@@ -311,23 +311,35 @@ getImage ( HIDS cam, wchar_t *buffer )
  */
 int main(int argc, char* argv[])
 {
-    HIDS camera1, camera2;
+    int num_cams;
+    HIDS *camera;
+    if( is_GetNumberOfCameras(&num_cams)!=IS_SUCCESS )
+    {
+        fprintf(stderr, "Error retrieving number of cameras.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    camera	= (HIDS *) calloc ( (size_t)(num_cams), sizeof(HIDS) );
+    if ( camera==NULL ) {
+        fprintf ( stderr, "\ndynamic memory allocation failed\n" );
+        exit (EXIT_FAILURE);
+    }
 
-    camera1 = initCam(1);
-    camera2 = initCam(2);
-
+    int cami;
+    for( cami=0; cami<num_cams; ++cami ) camera[cami]=initCam(cami+1);
 
     int i=0;
     while(i<30)
     {
         //int frameId;
         //uint64_t framenumber;
-        wchar_t buffer[100];
-        swprintf(buffer, 100, L"images/R%010d.bmp",++i);
-        getImage(camera1, buffer);
-
-        swprintf(buffer, 100, L"images/L%010d.bmp",i);
-        getImage(camera2, buffer);
+        ++i;
+        for( cami=0; cami<num_cams; ++cami )
+        {
+            wchar_t buffer[100];
+            swprintf(buffer, 100, L"images/cam%d-%010d.bmp", cami, i);
+            getImage(camera[cami], buffer);
+        }
         //UEYEIMAGEINFO ImageInfo;
         //if( (rv=is_GetImageInfo( camera, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
         //    err_ueye(camera, rv);
@@ -343,8 +355,10 @@ int main(int argc, char* argv[])
     //if( write( gps, UNLOGALL, strlen(UNLOGALL) )==-1 )
      //   err_sys("write: %s", UNLOGALL);
     //close(gps);
-    is_ExitCamera(camera1);
-    is_ExitCamera(camera2);
+    for( cami=0; cami<num_cams; ++cami ) is_ExitCamera(camera[cami]);
+
+    free (camera);
+    camera	= NULL;
     printf("success\n");
 }				/* ----------  end of function main  ---------- */
 

@@ -147,7 +147,6 @@ getImage ( HIDS cam )
     // Manage memory for the next frame.
     if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
         err_ueye(cam, rv, "GetActSeqBuf.");
-    //is_ForceTrigger(cam);		
     timedout=0;
     if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 500))==IS_NO_SUCCESS )
     {

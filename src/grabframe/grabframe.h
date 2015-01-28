@@ -20,13 +20,7 @@
 #define MAXMSG 1024            /*  */
 #define CRC32_POLYNOMIAL 0xEDB88320L
 
-int set_interface_attribs(int fd, int speed, int parity);
-void initGPS ( char* device, int *spanFD );
 void err_ueye ( HIDS cam, int result, char *msg );
 HIDS initCam ( int cam_num );
-unsigned long CRC32Value(int i);
-unsigned long CalculateBlockCRC32( unsigned long ulCount, unsigned char *ucBuffer );
-void extractMsg( char *buf, char **msg, char **crc );
-int isValid( char *buf );
 int getLatestTimestamp ( int gps, char *buf );
 #endif   /* ----- #ifndef grabframe_INC  ----- */

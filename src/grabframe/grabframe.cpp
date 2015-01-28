@@ -18,58 +18,6 @@
 
 #include "grabframe.h"
 
-int set_interface_attribs(int fd, int speed, int parity)
-{
-        struct termios tty;
-        if( tcgetattr(fd, &tty)==-1 )
-            err_sys("tcgetattr");
-
-        cfsetospeed (&tty, speed);
-        cfsetispeed (&tty, speed);
-
-        tty.c_iflag &= ~(IGNBRK|BRKINT|ICRNL|INLCR|PARMRK|INPCK|ISTRIP|IXON);
-        tty.c_oflag &= ~(OCRNL | ONLCR | ONLRET |
-                     ONOCR | OFILL | OLCUC | OPOST);                // no remapping, no delays
-        tty.c_lflag &= ~(ECHO|ECHONL|IEXTEN|ISIG);;                // no signaling chars, no echo,
-        tty.c_lflag |= ICANON;
-                                        // no canonical processing
-
-        tty.c_cflag &= ~(CSIZE|PARENB);
-        tty.c_cflag |= CS8 ;
-
-        if( tcsetattr(fd, TCSANOW, &tty)==-1 )
-            err_sys("tcsetattr");
-        return 0;
-}
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  initGPS
- *  Description:  Connects to the GPS, turns on event logging, and turns on
- *  trigger pulse.
- * =====================================================================================
- */
-    void
-initGPS ( char* device, int *spanFD )
-{
-    if( (*spanFD=open( device, O_RDWR | O_NOCTTY ))==-1 )
-        err_sys("open: %s", device);
-    set_interface_attribs( *spanFD, B115200, 0 );
-    // turn off current logging
-    //if( write( *spanFD, UNLOGALL, strlen(UNLOGALL) )==-1 )
-    //    err_sys("write: %s", UNLOGALL);
-    // enable input event port
-    if( write( *spanFD, ENABLE_EVENT_IN, strlen(ENABLE_EVENT_IN) )==-1 )
-        err_sys("write: %s", ENABLE_EVENT_IN);
-    // enable input event log
-    if( write( *spanFD, LOG_EVENT_IN, strlen(LOG_EVENT_IN) )==-1 )
-        err_sys("write: %s", LOG_EVENT_IN);
-    // turn on triggering
-    if( write( *spanFD, ENABLE_TRIGGER, strlen(ENABLE_TRIGGER) )==-1 )
-        err_sys("write: %s", ENABLE_TRIGGER);
-    return;
-}		/* -----  end of function initGPS  ----- */
-
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -169,101 +117,6 @@ initCam ( int cam_num )
     return cam;
 }		/* -----  end of function initCam  ----- */
 
-/* --------------------------------------------------------------------------
-Calculate a CRC value to be used by CRC calculation functions.
--------------------------------------------------------------------------- */
-unsigned long CRC32Value(int i)
-{
-    int j;
-    unsigned long ulCRC;
-    ulCRC = i;
-    for ( j = 8 ; j > 0; j-- )
-    {
-        if ( ulCRC & 1 )
-            ulCRC = ( ulCRC >> 1 ) ^ CRC32_POLYNOMIAL;
-        else
-            ulCRC >>= 1;
-    }
-    return ulCRC;
-}
-
-/* --------------------------------------------------------------------------
-Calculates the CRC-32 of a block of data all at once
--------------------------------------------------------------------------- */
-unsigned long CalculateBlockCRC32( unsigned long ulCount, /* Number of bytes in the data block */
-                                   unsigned char *ucBuffer ) /* Data block */
-{
-    unsigned long ulTemp1;
-    unsigned long ulTemp2;
-    unsigned long ulCRC = 0;
-    while ( ulCount-- != 0 )
-    {
-        ulTemp1 = ( ulCRC >> 8 ) & 0x00FFFFFFL;
-        ulTemp2 = CRC32Value( ((int) ulCRC ^ *ucBuffer++ ) & 0xff );
-        ulCRC = ulTemp1 ^ ulTemp2;
-    }
-    return( ulCRC );
-}
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  extractMsg
- *  Description:  Points msg to the beginning of the message, points crc to the
- *  beginning of the crc, sets the * to '\0'.
- * =====================================================================================
- */
-void extractMsg( char *buf, char **msg, char **crc )
-{
-    unsigned long len;
-    *msg=buf+1;
-    len=strlen(*msg);
-    len-=11; // Exclude the checksum.
-    *(*msg+len)='\0';
-    *crc=*msg+len+1;
-    return;
-}
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  isValid
- *  Description:  Returns true if calculated CRC matches given CRC.
- * =====================================================================================
- */
-int isValid( char *buf )
-{
-    unsigned long int len, CRC, givenCRC;
-    char *msg, *givenASCII;
-
-    extractMsg( buf, &msg, &givenASCII ); 
-
-    len=strlen(msg);
-    CRC = CalculateBlockCRC32( len, (unsigned char *)msg );
-
-    sscanf( givenASCII, "%lx", &givenCRC);
-    return (int)(CRC-givenCRC)==0 ; // Not sure why I need the typecast.
-}
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  getLatestTimestamp
- *  Description:  returns 0 on success, -1 on failure.
- * =====================================================================================
- */
-    int
-getLatestTimestamp ( FILE *gps, char *buf )
-{
-    buf[0]='a';
-    while(buf[0]!='#')
-        fgets( buf, MAXMSG, gps );
-    /* Checksum */
-    if( !isValid( buf ) )
-    {
-        fprintf( stderr, "Bad checksum: %s\n", buf );
-        return -1;
-    }
-    return 0;
-}		/* -----  end of function getLatestTimestamp  ----- */
-
-
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  getImage
@@ -346,15 +199,7 @@ int main(int argc, char* argv[])
         //framenumber=ImageInfo.u64FrameNumber;
         //printf("%lu\n", framenumber);
        
-     //   if( getLatestTimestamp(gpsFile, buf)==-1 )
-      //      fprintf(stderr, "bad CRC\n");
-       // else
-        //    printf("%d,%s\n", ++i, buf);
-        //fflush(gpsFile);
     }
-    //if( write( gps, UNLOGALL, strlen(UNLOGALL) )==-1 )
-     //   err_sys("write: %s", UNLOGALL);
-    //close(gps);
     for( cami=0; cami<num_cams; ++cami ) is_ExitCamera(camera[cami]);
 
     free (camera);

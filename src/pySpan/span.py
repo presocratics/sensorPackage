@@ -11,6 +11,7 @@ from optparse import OptionParser
 import serial
 import sys
 import signal
+import time
 
 ser=serial.Serial()
 
@@ -30,6 +31,7 @@ def connectToGPS(device="/dev/ttyUSB0"):
 def waitForFix(ser):
     """Poll device until it has a fix"""
     while 1:
+        print "Waiting for finesteering"
         ser.write("LOG usb1 BESTPOSA once\r\n")
         while 1:
 #TODO test for timeout
@@ -38,43 +40,81 @@ def waitForFix(ser):
                 break
         if msg.find("FINESTEERING")!=-1:
             break
-        print "Waiting for finesteering"
     print "Finesteering achieved"
     return
 
 def setInitAttitude(ser):
     """Initializes attitude"""
     ser.write("SETINITATTITUDE 0 0 90 5 5 5\r\n")
+    if isOK(ser) is False:
+        exit("SETINITATTITUDE failed.")
     return
+
+def isOK(ser):
+    """Returns True if SPAN responds with OK"""
+    while 1:
+        msg=ser.readline(300)
+        if msg.find("<")!=-1:
+            break
+    if msg.find("<OK")!=-1:
+        return True
+    return False
 
 def unlogall(ser):
     """Turns off all other logging"""
-    ser.write("unlogall\r\n")
+    while 1:
+        print("Running unlogall and waiting for confirmation.")
+        ser.write("unlogall\r\n")
+        time.sleep(1)
+        if isOK(ser) is True:
+            break
+    print("Unlogall ran successfully")
     return
 
 def logINSPVASA(ser, rate):
     """Turns on INSPVASA. Position, velocity, attitude, short msg ASCII"""
     ser.write("LOG usb1 INSPVASA ontime %f\r\n" % (rate))
+    if isOK(ser) is False:
+        exit("INSPVASA failed.")
     return
 
 def logImages(ser, fps):
     """Sets up external trigger output at fps and turns on 2 trigger inputs"""
-    ser.write("EVENTINCONTROL MARK1 ENABLE\r\n")
-    ser.write("EVENTINCONTROL MARK2 ENABLE\r\n")
+    msg="EVENTINCONTROL MARK1 ENABLE"
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
 
-    ser.write("MARK1TIMEA ONNEW\r\n")
-    ser.write("MARK2TIMEA ONNEW\r\n")
+    msg="EVENTINCONTROL MARK2 ENABLE"
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
+
+    msg="log MARK1TIMEA ONNEW"
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
+
+    msg="log MARK2TIMEA ONNEW"
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
 
     """Convert fps to nanosecond half period"""
     T=int(500e6/int(fps))
 
-    ser.write("EVENTOUTCONTROL MARK1 ENABLE POSITIVE %d %d\r\n" % (T, T))
+    msg="EVENTOUTCONTROL MARK1 ENABLE POSITIVE %d %d" % (T, T)
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
 
 
 def logACC(ser, rate):
     """Turns on acceleration logging"""
-    ser.write("LOG usb1 CORRIMUDATASA ontime %f\r\n" % (rate))
+    msg="LOG usb1 CORRIMUDATASA ontime %f" % (rate)
+    if sendCommand(ser, msg) is False:
+        exit("corrimudatasa Failed.")
     return
+
+def sendCommand(ser, msg):
+    """Sends a command and verifies it is received correctly"""
+    ser.write("%s\r\n" % (msg))
+    return isOK(ser)
 
 def main():
     parser=OptionParser()

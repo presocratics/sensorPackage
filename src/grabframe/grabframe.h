@@ -22,5 +22,5 @@
 
 void err_ueye ( HIDS cam, int result, char *msg );
 HIDS initCam ( int cam_num );
-int getLatestTimestamp ( int gps, char *buf );
+void getImage ( HIDS cam );
 #endif   /* ----- #ifndef grabframe_INC  ----- */

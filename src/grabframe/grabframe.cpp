@@ -124,22 +124,26 @@ initCam ( int cam_num )
  * =====================================================================================
  */
     void
-getImage ( HIDS cam, wchar_t *buffer )
+getImage ( HIDS cam )
 {
+    wchar_t buffer[100];
     IMAGE_FILE_PARAMS ImageFileParams;
     int rv;
     char *currentFrame;
 
     int frameId;
     uint64_t framenumber;
+    uint64_t u64TimestampDevice;
     UEYEIMAGEINFO ImageInfo;
 
+    // Setup file saving params.
     ImageFileParams.pwchFileName = NULL;
     ImageFileParams.pnImageID = NULL;
     ImageFileParams.ppcImageMem = NULL;
     ImageFileParams.nFileType = IS_IMG_BMP;
     ImageFileParams.nQuality=100;
 
+    // Manage memory for the next frame.
     if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
         err_ueye(cam, rv, "GetActSeqBuf.");
     is_ForceTrigger(cam);		
@@ -148,19 +152,34 @@ getImage ( HIDS cam, wchar_t *buffer )
     if( (rv=is_LockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "LockSeqBuf.");
 
+    // Get info about the latest frame.
+    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
+        err_ueye(cam, rv, "GetImageInfo.");
+
+    framenumber=ImageInfo.u64FrameNumber;
+    u64TimestampDevice = ImageInfo.u64TimestampDevice;  
+
+    // Print logging info.
+    printf("%d, %lu, %020ld, %02d/%02d/%04d %02d:%02d:%02d.%03d\n", 
+            cam,
+            framenumber,
+            u64TimestampDevice,
+            ImageInfo.TimestampSystem.wMonth,
+            ImageInfo.TimestampSystem.wDay, 
+            ImageInfo.TimestampSystem.wYear,
+            ImageInfo.TimestampSystem.wHour,
+            ImageInfo.TimestampSystem.wMinute,
+            ImageInfo.TimestampSystem.wSecond,
+            ImageInfo.TimestampSystem.wMilliseconds);
+
+    // Save the image.
+    swprintf(buffer, 100, L"images/cam%d-%010d.bmp", cam, framenumber);
     ImageFileParams.pwchFileName = buffer;
     if( (rv=is_ImageFile( cam, IS_IMAGE_FILE_CMD_SAVE, (void*) &ImageFileParams,
             sizeof(ImageFileParams) ))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Save image.");
     }
-    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
-        err_ueye(cam, rv, "GetImageInfo.");
-    framenumber=ImageInfo.u64FrameNumber;
-    uint64_t u64TimestampDevice;
-    u64TimestampDevice = ImageInfo.u64TimestampDevice;  
-    printf( "%020ld \n",u64TimestampDevice);
-    printf("%lu\n", framenumber);
 
     if( (rv=is_UnlockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "UnlockSeqBuf.");
@@ -198,9 +217,7 @@ int main(int argc, char* argv[])
         ++i;
         for( cami=0; cami<num_cams; ++cami )
         {
-            wchar_t buffer[100];
-            swprintf(buffer, 100, L"images/cam%d-%010d.bmp", cami, i);
-            getImage(camera[cami], buffer);
+            getImage(camera[cami]);
         }
        
     }

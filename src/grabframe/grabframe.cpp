@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
     }
 
     int i=0;
-    while(i<20)
+    while(1)
     {
         ++i;
         for( cami=0; cami<num_cams; ++cami )

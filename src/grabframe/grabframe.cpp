@@ -26,7 +26,7 @@ int num_cams;
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  signal_callback_handler
- *  Description:  
+ *  Description:  Handles SIGINT (^C).
  * =====================================================================================
  */
     void
@@ -49,7 +49,8 @@ signal_callback_handler ( int signum )
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  err_ueye
- *  Description:  
+ *  Description:  Passes error value to uEye library, prints error message and
+ *  user-defined string (msg) to STDERR.
  * =====================================================================================
  */
     void
@@ -147,7 +148,8 @@ initCam ( int cam_num )
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  getImage
- *  Description:  
+ *  Description:  Gets the next image from cam, saves it, and prints its info to
+ *  STDOUT.
  * =====================================================================================
  */
     void

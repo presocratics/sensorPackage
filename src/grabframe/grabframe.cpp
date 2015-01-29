@@ -18,6 +18,33 @@
 
 #include "grabframe.h"
 
+// These are made global so that we can access them after SIGINT.
+HIDS *camera; 
+char **dirs; 
+int num_cams;
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  signal_callback_handler
+ *  Description:  
+ * =====================================================================================
+ */
+    void
+signal_callback_handler ( int signum )
+{
+    printf("Caught signal %d\n", signum);
+    int i;
+    for( i=0; i<num_cams; ++i )
+    {
+        int rv;
+        printf("Closing cam %d of %d\n", i+1, num_cams);
+        if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS )
+            err_ueye(camera[i], rv, "Exit camera.");
+        free (dirs[i]);
+    }
+    free(camera);
+    exit( signum );
+}		/* -----  end of function signal_callback_handler  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -202,16 +229,15 @@ getImage ( HIDS cam, char *dir )
  */
 int main(int argc, char* argv[])
 {
-    int num_cams;
-    HIDS *camera;
     char parentdir[100];
-    char **dirs;
 
     // Get time for image storage dir.
     char timestr[200];
     time_t t;
     struct tm *tmp;
 
+    // Register signal and signal handler.
+    signal(SIGINT, signal_callback_handler);
     t=time(NULL);
     tmp=localtime(&t);
 
@@ -267,7 +293,9 @@ int main(int argc, char* argv[])
     }
     for( cami=0; cami<num_cams; ++cami ) 
     {
-        is_ExitCamera(camera[cami]);
+        int rv;
+        if( (rv=is_ExitCamera(camera[cami]))!=IS_SUCCESS )
+            err_ueye(camera[cami], rv, "Exit camera.");
         free (dirs[cami]);
     }
 

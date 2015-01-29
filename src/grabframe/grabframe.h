@@ -12,6 +12,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <signal.h>
 
 #define UNLOGALL "unlogall\r\n"            /*  */
 #define ENABLE_EVENT_IN "EVENTINCONTROL MARK2 ENABLE\r\n"            /*  */

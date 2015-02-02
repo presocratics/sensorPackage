@@ -135,7 +135,7 @@ def main():
     setInitAttitude(ser)
     logINSPVASA(ser, 1)  # 1Hz
     logACC(ser, .02) # 50Hz
-    print "Logging has begun. cat or tail the device to read."
+    print "Logging has begun."
     ser.close()
     sys.exit(0)
 

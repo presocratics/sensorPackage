@@ -37,12 +37,15 @@ signal_callback_handler ( int signum )
     for( i=0; i<num_cams; ++i )
     {
         int rv;
-        printf("Closing cam %d of %d\n", i+1, num_cams);
-        if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS )
+        printf("Closing cam %d of %d (%d)\n", i+1, num_cams, camera[i]);
+        if( (rv=is_ExitCamera(0))!=IS_SUCCESS )
             err_ueye(camera[i], rv, "Exit camera.");
         free (dirs[i]);
+        sleep(1);
     }
     free(camera);
+    camera=NULL;
+    dirs	= NULL;
     exit( signum );
 }		/* -----  end of function signal_callback_handler  ----- */
 
@@ -83,7 +86,11 @@ initCam ( int cam_num )
     double empty;
     cam = (HIDS) cam_num;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
+    {
         err_ueye(cam, rv, "InitCamera.");
+        fprintf(stderr, "Failed to init cam %d\n", cam );
+        exit(EXIT_FAILURE);
+    }
 
     // Set camera exposure modes
     if( (rv=is_SetColorMode( cam, IS_CM_MONO8))!=IS_SUCCESS )
@@ -270,7 +277,7 @@ int main(int argc, char* argv[])
     int cami;
     for( cami=0; cami<num_cams; ++cami ) 
     {
-        camera[cami]=initCam(cami+1);
+        camera[cami]=initCam(0);
         // Prepare directories to store images
         
         dirs[cami]	= (char *)calloc ( (size_t)(100), sizeof(char) );

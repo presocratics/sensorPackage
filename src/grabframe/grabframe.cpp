@@ -180,10 +180,8 @@ getImage ( HIDS cam, char *dir, int show )
     ImageFileParams.nQuality=100;
 
     // Manage memory for the next frame.
-    if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
-        err_ueye(cam, rv, "GetActSeqBuf.");
     timedout=0;
-    if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 500))==IS_NO_SUCCESS )
+    if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 1000))==IS_NO_SUCCESS )
     {
         err_ueye(cam, rv, "Wait Event.");
     }
@@ -191,9 +189,48 @@ getImage ( HIDS cam, char *dir, int show )
     {
         timedout=1;
     }
+    if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
+        err_ueye(cam, rv, "GetActiveImageMem.");
+    frameId=(frameId==1) ? SEQSIZE : frameId-1;
+
     if( (rv=is_LockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "LockSeqBuf.");
 
+    // Get capture status
+    UEYE_CAPTURE_STATUS_INFO capStat;
+    if( (rv=is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_GET, (void*) &capStat,
+            sizeof(capStat)))==IS_SUCCESS)
+    {
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_USB_TRANSFER_FAILED]!=0 )
+        {
+            fprintf(stderr, "Cam %d USB transfer failed. Operate fewer cameras on bus.\n", cam);
+        }
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_NO_DEST_MEM]!=0 )
+        {
+            fprintf(stderr, "Cam %d No destination memory. Reduce FPS.\n", cam);
+        }
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_CONVERSION_FAILED]!=0 )
+        {
+            fprintf(stderr, "Cam %d Conversion failed.\n", cam);
+        }
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_IMAGE_LOCKED] )
+        {
+            fprintf(stderr, "Cam %d All destination buffers locked. Reduce FPS.\n", cam);
+        }
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DRV_OUT_OF_BUFFERS] )
+        {
+            fprintf(stderr, "Cam %d Out of Buffers. Reduce FPS.\n", cam);
+        }
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DRV_DEVICE_NOT_READY] )
+        {
+            fprintf(stderr, "Cam %d Device not ready. Check connection.\n", cam);
+        }
+        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DEV_TIMEOUT] )
+        {
+            fprintf(stderr, "Cam %d Image capture timeout. Reduce exposure time.\n", cam);
+        }
+    }
+    is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_RESET, NULL, 0);
     // Get info about the latest frame.
     if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
         err_ueye(cam, rv, "GetImageInfo.");

@@ -81,8 +81,6 @@ initCam ( int cam_num )
     int memoryID[SEQSIZE];
     unsigned int pixelClockRange[3];
     unsigned int maxPixelClock;
-    double on = 1;
-    double empty;
     cam = (HIDS) cam_num;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {
@@ -94,10 +92,7 @@ initCam ( int cam_num )
     // Set camera exposure modes
     if( (rv=is_SetColorMode( cam, IS_CM_MONO8))!=IS_SUCCESS )
         err_ueye(cam, rv, "SetColorMode.");
-    if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty))!=IS_SUCCESS )
-        err_ueye(cam, rv, "SetAutoGain.");
-    //if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_SHUTTER, &on, &empty))!=IS_SUCCESS )
-     //   err_ueye(cam, rv, "EnableAutoShutter.");
+    autoGain(cam);
     bitsPerPixel=8;
     frameWidth=1600;
     frameHeight=1200;
@@ -288,7 +283,7 @@ incrGain ( HIDS cam, int delta )
     int nm=IS_IGNORE_PARAMETER;
     if( (rv=is_SetHardwareGain(cam, IS_GET_MASTER_GAIN, nm, nm, nm))==IS_NO_SUCCESS )
         err_ueye(cam, rv, "Get master gain.");
-    printf("gain: %d\n", rv);
+    //printf("gain: %d\n", rv);
     rv+=delta;
     // Set new value
     if( (rv=is_SetHardwareGain(cam, rv, nm, nm, nm))!=IS_SUCCESS )
@@ -313,13 +308,13 @@ incrShutter ( HIDS cam, int delta )
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE, (void*) &exposure,
                     sizeof(exposure)))!=IS_SUCCESS )
         err_ueye(cam, rv, "Get exposure.");
-    printf("exposure: %f\n", exposure);
+    //printf("exposure: %f\n", exposure);
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE, (void *) &range, 
                     sizeof(range)))!=IS_SUCCESS )
         err_ueye(cam, rv, "Get exposure range.");
-    printf("min: %f max: %f incr: %f\n", range[0], range[1], range[2]);
+    //printf("min: %f max: %f incr: %f\n", range[0], range[1], range[2]);
     exposure+=delta;
-    printf("new exposure: %f\n", exposure);
+    //printf("new exposure: %f\n", exposure);
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*) &exposure, 
                     sizeof(exposure)))!=IS_SUCCESS)
         err_ueye(cam, rv, "Set exposure.");
@@ -352,6 +347,23 @@ toggleGainBoost ( HIDS cam )
 
     return ;
 }		/* -----  end of function toggleGainBoost  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  autoGain
+ *  Description:  
+ * =====================================================================================
+ */
+    void
+autoGain ( HIDS cam )
+{
+    int rv;
+    double on = 1;
+    double empty;
+    if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty))!=IS_SUCCESS )
+        err_ueye(cam, rv, "SetAutoGain.");
+    return ;
+}		/* -----  end of function autoGain  ----- */
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -425,30 +437,29 @@ int main(int argc, char* argv[])
                 signal_callback_handler ( SIGINT );
                 break;
 
-            case 'j':	
-                printf("Gain down.\n");
+            case 'j':	// Decrease gain.
                 for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], -5);
                 break;
 
-            case 'k':	
-                printf("Gain up.\n");
+            case 'k':	// Increase gain.
                 for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], +1);
                 break;
 
-            case 'h':	
-                printf("Decrease shutter time.\n");
+            case 'h':	// Decrease exposure time.
                 for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], -1);
                 break;
 
-            case 'l':	
-                printf("Increase shutter time.\n");
-                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], +5);
+            case 'l':	// Increase exposure time.
+                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], +3);
                 break;
 
-            case 'b':	
+            case 'b':	// Toggle gain boost.
                 for( cami=0; cami<num_cams; ++cami ) toggleGainBoost(camera[cami]);
                 break;
 
+            case 'a':	// Turn auto gain.
+                for( cami=0; cami<num_cams; ++cami ) autoGain(camera[cami]);
+                break;
 
             default:	
                 break;

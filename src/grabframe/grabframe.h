@@ -28,4 +28,5 @@
 void err_ueye ( HIDS cam, int result, char *msg );
 HIDS initCam ( int cam_num );
 void getImage ( HIDS cam, char *dir, int show);
+void autoGain ( HIDS cam );
 #endif   /* ----- #ifndef grabframe_INC  ----- */

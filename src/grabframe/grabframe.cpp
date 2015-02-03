@@ -38,12 +38,11 @@ signal_callback_handler ( int signum )
     {
         int rv;
         printf("Closing cam %d of %d (%d)\n", i+1, num_cams, camera[i]);
-        if( (rv=is_ExitCamera(0))!=IS_SUCCESS )
+        if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS );
             err_ueye(camera[i], rv, "Exit camera.");
         free (dirs[i]);
-        sleep(1);
     }
-    free(camera);
+    free(dirs);
     camera=NULL;
     dirs	= NULL;
     exit( signum );
@@ -160,7 +159,7 @@ initCam ( int cam_num )
  * =====================================================================================
  */
     void
-getImage ( HIDS cam, char *dir )
+getImage ( HIDS cam, char *dir, int show )
 {
     wchar_t buffer[100];
     IMAGE_FILE_PARAMS ImageFileParams;
@@ -216,6 +215,14 @@ getImage ( HIDS cam, char *dir )
             ImageInfo.TimestampSystem.wMilliseconds,
             timedout);
 
+    // Write to a Mat
+    if( show==1 )
+    {
+        cv::Mat image(1200,1600,CV_8UC1, NULL, 1600);
+        image.data = (uchar *) currentFrame;
+        cv::imshow("image", image);
+        cv::waitKey(1);
+    }
     // Save the image.
     swprintf(buffer, 100, L"%s/%010d.bmp", dir, framenumber);
     ImageFileParams.pwchFileName = buffer;
@@ -229,6 +236,85 @@ getImage ( HIDS cam, char *dir )
         err_ueye(cam, rv, "UnlockSeqBuf.");
     return;
 }		/* -----  end of function getImage  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  incrGain
+ *  Description:  Adjusts gain by delta.
+ * =====================================================================================
+ */
+    void
+incrGain ( HIDS cam, int delta )
+{
+    // Get current value
+    int rv;
+    int nm=IS_IGNORE_PARAMETER;
+    if( (rv=is_SetHardwareGain(cam, IS_GET_MASTER_GAIN, nm, nm, nm))==IS_NO_SUCCESS )
+        err_ueye(cam, rv, "Get master gain.");
+    printf("gain: %d\n", rv);
+    rv+=delta;
+    // Set new value
+    if( (rv=is_SetHardwareGain(cam, rv, nm, nm, nm))!=IS_SUCCESS )
+        err_ueye(cam, rv, "Set master gain.");
+
+    return;
+}		/* -----  end of function incrGain  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  incrShutter
+ *  Description:  
+ * =====================================================================================
+ */
+    void
+incrShutter ( HIDS cam, int delta )
+{
+    // Get current value
+    int rv;
+    double exposure;
+    double range[3];
+    if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE, (void*) &exposure,
+                    sizeof(exposure)))!=IS_SUCCESS )
+        err_ueye(cam, rv, "Get exposure.");
+    printf("exposure: %f\n", exposure);
+    if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE, (void *) &range, 
+                    sizeof(range)))!=IS_SUCCESS )
+        err_ueye(cam, rv, "Get exposure range.");
+    printf("min: %f max: %f incr: %f\n", range[0], range[1], range[2]);
+    exposure+=delta;
+    printf("new exposure: %f\n", exposure);
+    if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*) &exposure, 
+                    sizeof(exposure)))!=IS_SUCCESS)
+        err_ueye(cam, rv, "Set exposure.");
+
+    return ;
+}		/* -----  end of function incrShutter  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  toggleGainBoost
+ *  Description:  
+ * =====================================================================================
+ */
+    void
+toggleGainBoost ( HIDS cam )
+{
+    int rv;
+    if( (rv=is_SetGainBoost(cam, IS_GET_GAINBOOST))==IS_NO_SUCCESS )
+        err_ueye(cam, rv, "Get gain boost.");
+    if( rv==IS_SET_GAINBOOST_ON )
+    {
+        rv=IS_SET_GAINBOOST_OFF;
+    }
+    else
+    {
+        rv=IS_SET_GAINBOOST_ON;
+    }
+    if( (rv=is_SetGainBoost(cam, rv))==IS_NO_SUCCESS )
+        err_ueye(cam, rv, "Set gain boost.");
+
+    return ;
+}		/* -----  end of function toggleGainBoost  ----- */
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -293,12 +379,52 @@ int main(int argc, char* argv[])
     int i=0;
     while(1)
     {
+        // Handle key presses
+        char key;
+        key=cv::waitKey(1);
+        
+        switch ( key ) {
+            case 'q':	
+                signal_callback_handler ( SIGINT );
+                break;
+
+            case 'j':	
+                printf("Gain down.\n");
+                for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], -5);
+                break;
+
+            case 'k':	
+                printf("Gain up.\n");
+                for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], +1);
+                break;
+
+            case 'h':	
+                printf("Decrease shutter time.\n");
+                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], -1);
+                break;
+
+            case 'l':	
+                printf("Increase shutter time.\n");
+                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], +5);
+                break;
+
+            case 'b':	
+                for( cami=0; cami<num_cams; ++cami ) toggleGainBoost(camera[cami]);
+                break;
+
+
+            default:	
+                break;
+        }				/* -----  end switch  ----- */
+
+
+
         ++i;
         for( cami=0; cami<num_cams; ++cami )
         {
-            getImage(camera[cami], dirs[cami]);
+            int show=(i%10==0) && (cami==0) ? 1 : 0;
+            getImage(camera[cami], dirs[cami], show);
         }
-       
     }
     for( cami=0; cami<num_cams; ++cami ) 
     {

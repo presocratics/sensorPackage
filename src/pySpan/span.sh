@@ -4,7 +4,15 @@
 # Martin Miller
 # Runs span.py and starts logging. Generates a logname based on the current time
 # to prevent overwrites.
+# Usage: span.py [N]
+# N: FPS (if not specified default: 5)
 
+if [ $# -eq 1 ]
+then
+    FPS=$1
+else
+    FPS=5
+fi
 device=/dev/ttyUSB0
 screenrc=/tmp/spanpy-screenrc
 
@@ -16,7 +24,7 @@ then
 fi
 
 ## run span and check if it worked.
-sudo python span.py -f 5 $device
+sudo python span.py -f $FPS $device
 if [ ! $? -eq 0 ]
 then
     echo "Span failed."

@@ -22,6 +22,9 @@
 HIDS *camera; 
 char **dirs; 
 int num_cams;
+#ifndef __linux
+HANDLE frameEvent[2];
+#endif
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -140,6 +143,10 @@ initCam ( int cam_num )
     // Begin transmission
     if( (rv=is_CaptureVideo(cam, IS_DONT_WAIT))!=IS_SUCCESS )
         err_ueye(cam, rv, "CaptureVideo.");
+#ifndef __linux // Using Windows
+    if( (rv=is_InitEvent(cam, frameEvent[cam-1], IS_SET_EVENT_FRAME))!=IS_SUCCESS )
+        err_ueye(cam, rv, "Init event (Win).");
+#endif
     if( (rv=is_EnableEvent(cam, IS_SET_EVENT_FRAME))!=IS_SUCCESS )
         err_ueye(cam, rv, "Set event frame.");
 
@@ -176,6 +183,7 @@ getImage ( HIDS cam, char *dir, int show )
 
     // Manage memory for the next frame.
     timedout=0;
+#ifdef __linux
     if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 1000))==IS_NO_SUCCESS )
     {
         err_ueye(cam, rv, "Wait Event.");
@@ -184,6 +192,12 @@ getImage ( HIDS cam, char *dir, int show )
     {
         timedout=1;
     }
+#else // Windows
+    if( WaitForSingleObject( frameEvent[cam-1] , 1000)==WAIT_TIMEOUT )
+    {
+        timedout=1;
+    }
+#endif
     if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
         err_ueye(cam, rv, "GetActiveImageMem.");
     frameId=(frameId==1) ? SEQSIZE : frameId-1;
@@ -408,6 +422,11 @@ int main(int argc, char* argv[])
         fprintf ( stderr, "\ndynamic memory allocation failed\n" );
         exit (EXIT_FAILURE);
     }
+
+#ifndef __linux
+    frameEvent[0]=CreateEvent(NULL,FALSE,FALSE,NULL);
+    frameEvent[1]=CreateEvent(NULL,FALSE,FALSE,NULL);
+#endif
 
     int cami;
     for( cami=0; cami<num_cams; ++cami ) 

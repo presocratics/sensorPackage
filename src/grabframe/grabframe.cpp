@@ -390,9 +390,9 @@ autoGain ( HIDS cam )
 int main(int argc, char* argv[])
 {
     char parentdir[100];
+    char timestr[200];
 
     // Get time for image storage dir.
-    char timestr[200];
     time_t t;
     struct tm *tmp;
 
@@ -401,11 +401,19 @@ int main(int argc, char* argv[])
     t=time(NULL);
     tmp=localtime(&t);
 
+#ifdef __linux
     if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 )
         err_sys("strftime");
+#else
+    strftime(timestr, sizeof(timestr), "%Y-%m-%d-%H%M%S", tmp);
+#endif
     sprintf(parentdir, "./images/%s", timestr);
+#ifdef __linux
     if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
         err_sys("mkdir %s", parentdir);
+#else
+    mkdir(parentdir);
+#endif
 
     if( is_GetNumberOfCameras(&num_cams)!=IS_SUCCESS )
     {
@@ -442,8 +450,12 @@ int main(int argc, char* argv[])
             exit (EXIT_FAILURE);
         }
         sprintf(dirs[cami], "%s/%d", parentdir, cami+1);
+#ifdef __linux
         if( mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
             err_sys("mkdir %s", dirs[cami]);
+#else
+        mkdir(dirs[cami]);
+#endif
     }
 
     int i=0;

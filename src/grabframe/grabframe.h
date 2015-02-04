@@ -1,13 +1,14 @@
 #ifndef  grabframe_INC
 #define  grabframe_INC
-#include "ourerr.hpp"
 #include <uEye.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <wchar.h>
-#include <termios.h>
+#ifdef __linux
+#include "ourerr.hpp"
 #include <unistd.h>
+#endif
 #include <sys/fcntl.h>
 #include <string.h>
 #include <time.h>

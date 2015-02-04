@@ -412,7 +412,7 @@ int main(int argc, char* argv[])
     if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
         err_sys("mkdir %s", parentdir);
 #else
-    mkdir(parentdir);
+    _mkdir(parentdir);
 #endif
 
     if( is_GetNumberOfCameras(&num_cams)!=IS_SUCCESS )
@@ -454,7 +454,7 @@ int main(int argc, char* argv[])
         if( mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
             err_sys("mkdir %s", dirs[cami]);
 #else
-        mkdir(dirs[cami]);
+        _mkdir(dirs[cami]);
 #endif
     }
 

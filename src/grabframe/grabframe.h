@@ -8,8 +8,10 @@
 #ifdef __linux
 #include "ourerr.hpp"
 #include <unistd.h>
-#endif
 #include <sys/fcntl.h>
+#else
+#include <direct.h>
+#endif
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>

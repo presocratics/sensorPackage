@@ -44,6 +44,8 @@ signal_callback_handler ( int signum )
         if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS );
             err_ueye(camera[i], rv, "Exit camera.");
         free (dirs[i]);
+        if( (rv=is_DisableEvent(camera[i], IS_SET_EVENT_FRAME))!=IS_SUCCESS)
+            err_ueye(camera[i], rv, "Disable event.");
     }
     free(dirs);
     camera=NULL;

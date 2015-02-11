@@ -186,7 +186,6 @@ getImage ( HIDS cam, char *dir, int show )
     // Manage memory for the next frame.
     timedout=0;
 #ifdef __linux
-    is_ForceTrigger(cam);
     if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 1000))==IS_NO_SUCCESS )
     {
         err_ueye(cam, rv, "Wait Event.");

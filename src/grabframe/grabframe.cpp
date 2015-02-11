@@ -95,7 +95,7 @@ initCam ( int cam_num )
     }
 
     // Set camera exposure modes
-    if( (rv=is_SetColorMode( cam, IS_CM_MONO8))!=IS_SUCCESS )
+    if( (rv=is_SetColorMode( cam, IS_CM_SENSOR_RAW8))!=IS_SUCCESS )
         err_ueye(cam, rv, "SetColorMode.");
     autoGain(cam);
     bitsPerPixel=8;
@@ -186,6 +186,7 @@ getImage ( HIDS cam, char *dir, int show )
     // Manage memory for the next frame.
     timedout=0;
 #ifdef __linux
+    is_ForceTrigger(cam);
     if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 1000))==IS_NO_SUCCESS )
     {
         err_ueye(cam, rv, "Wait Event.");
@@ -267,8 +268,10 @@ getImage ( HIDS cam, char *dir, int show )
     if( show==1 )
     {
         cv::Mat image(1200,1600,CV_8UC1, NULL, 1600);
+        cv::Mat color(1200,1600,CV_8UC3, NULL, 1600);
         image.data = (uchar *) currentFrame;
-        cv::imshow("image", image);
+        cvtColor(image, color, CV_BayerBG2BGR, 3);
+        cv::imshow("image", color);
         cv::waitKey(1);
     }
     // Save the image.
@@ -389,6 +392,7 @@ autoGain ( HIDS cam )
  */
 int main(int argc, char* argv[])
 {
+    char pparent[100];
     char parentdir[100];
     char timestr[200];
 
@@ -407,7 +411,15 @@ int main(int argc, char* argv[])
 #else
     strftime(timestr, sizeof(timestr), "%Y-%m-%d-%H%M%S", tmp);
 #endif
-    sprintf(parentdir, "./images/%s", timestr);
+    if(argc==2) // Parent dir is set
+    {
+        sprintf(pparent, "%s/images", argv[1]);
+    }
+    else
+    {
+        sprintf(pparent, "./images");
+    }
+    sprintf(parentdir, "%s/%s", pparent, timestr);
 #ifdef __linux
     if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
         err_sys("mkdir %s", parentdir);

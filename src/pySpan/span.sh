@@ -6,6 +6,11 @@
 # to prevent overwrites.
 # Usage: span.py [N]
 # N: FPS (if not specified default: 5)
+# parent: root directory for data storage
+parent=/mnt/hdd/marty/sp
+
+mkdir -p ${parent}/data
+mkdir -p ${parent}/images
 
 if [ $# -eq 1 ]
 then
@@ -39,5 +44,8 @@ then
     exit 1
 fi
 # Create a temp screenrc to set the logfile name
-echo "logfile ${date}.log" | tee $screenrc
-sudo screen -c $screenrc -L $device 115200
+echo "logfile ${parent}/data/${date}.gps" | tee $screenrc
+echo "screen -L -t gps 0 $device 115200" | tee -a $screenrc
+echo "logfile ${parent}/data/${date}.pics" | tee -a $screenrc
+echo "screen -L -t cam 1 ../../bin/grabframe ${parent}" | tee -a $screenrc
+sudo screen -c $screenrc

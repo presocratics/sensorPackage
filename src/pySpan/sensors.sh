@@ -49,8 +49,15 @@ then
     exit 1
 fi
 # Create a temp screenrc to set the logfile name
-echo "logfile ${parent}/data/${date}.gps" | tee $screenrc
-echo "screen -L -t gps 0 $device 115200" | tee -a $screenrc
-echo "logfile ${parent}/data/${date}.pics" | tee -a $screenrc
-echo "screen -L -t cam 1 ./bin/grabframe ${parent}" | tee -a $screenrc
+# Leading tabs (not spaces) ignored.
+tee $screenrc <<- EOF
+	logfile ${parent}/data/${date}.gps
+	screen -L -t gps 0 $device 115200
+	logfile ${parent}/data/${date}.pics
+	screen -L -t cam 1 ./bin/grabframe ${parent}
+	split
+	focus
+	next
+	focus
+EOF
 sudo screen -c $screenrc

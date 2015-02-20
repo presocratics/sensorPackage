@@ -133,7 +133,7 @@ def main():
         logImages(ser, options.fps)
     waitForFix(ser)
     setInitAttitude(ser)
-    logINSPVASA(ser, 10)  # 10Hz
+    logINSPVASA(ser, .1)  # 10Hz
     logACC(ser, .02) # 50Hz
     print "Logging has begun."
     ser.close()

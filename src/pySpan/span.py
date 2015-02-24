@@ -156,7 +156,7 @@ def main():
     waitForFix(ser)
     setInitAttitude(ser)
     waitForINS(ser)
-    logINSPVASA(ser, 10)  # 10Hz
+    logINSPVASA(ser, .1)  # 10Hz
     logACC(ser, .02) # 50Hz
     logStatus(ser, 10) # .1Hz
     print "Logging has begun."

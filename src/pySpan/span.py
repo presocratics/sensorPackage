@@ -34,13 +34,28 @@ def waitForFix(ser):
         print "Waiting for finesteering"
         ser.write("LOG usb1 BESTPOSA once\r\n")
         while 1:
-#TODO test for timeout
             msg=ser.readline(300)
-            if msg.find("BESTPOSA")!=-1:
+            if "BESTPOSA" in msg:
                 break
-        if msg.find("FINESTEERING")!=-1:
+        if "FINESTEERING" in msg:
             break
     print "Finesteering achieved"
+    return
+
+def waitForINS(ser):
+    """Poll device until it has an inertial solution"""
+    while 1:
+        print "Waiting for inertial solution"
+        ser.write("LOG usb1 inspvasa once\r\n")
+        while 1:
+            msg=ser.readline(300)
+            if "INSPVASA" in msg:
+                break
+        if "INS_SOLUTION_GOOD" in msg:
+            break
+        status=msg.split(",")[13]
+        print status
+    print "Inertial solution achieved"
     return
 
 def setInitAttitude(ser):
@@ -116,6 +131,13 @@ def sendCommand(ser, msg):
     ser.write("%s\r\n" % (msg))
     return isOK(ser)
 
+def logStatus(ser, rate):
+    """Gets a full message to see status of Span unit"""
+    msg="LOG usb1 bestposa ontime %f" % (rate)
+    if sendCommand(ser, msg) is False:
+        exit("log status Failed.")
+    return
+
 def main():
     parser=OptionParser()
     parser.add_option("-d", "--device", dest="device", action="store",
@@ -133,8 +155,10 @@ def main():
         logImages(ser, options.fps)
     waitForFix(ser)
     setInitAttitude(ser)
+    waitForINS(ser)
     logINSPVASA(ser, 10)  # 10Hz
     logACC(ser, .02) # 50Hz
+    logStatus(ser, 10) # .1Hz
     print "Logging has begun."
     ser.close()
     sys.exit(0)

@@ -1,0 +1,2 @@
+screen -L -t imu 0 /dev/ttyUSB1
+screen -t imuinit 2 ./getimu.py

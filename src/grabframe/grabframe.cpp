@@ -41,7 +41,7 @@ signal_callback_handler ( int signum )
     {
         int rv;
         printf("Closing cam %d of %d (%d)\n", i+1, num_cams, camera[i]);
-        if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS );
+        if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS )
             err_ueye(camera[i], rv, "Exit camera.");
         free (dirs[i]);
         if( (rv=is_DisableEvent(camera[i], IS_SET_EVENT_FRAME))!=IS_SUCCESS)

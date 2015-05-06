@@ -11,13 +11,19 @@
 case "$#" in
     0)  FPS=5
         parent="./"
+        sia=""
         ;;
     1)  FPS=$1
         parent="./"
+        sia=""
         ;;
     2)  FPS=$1
         parent=$2
+        sia=""
         ;;
+    3)  FPS=$1
+        parent=$2
+        sia="-s"
 esac
 
 mkdir -p ${parent}/data
@@ -34,7 +40,7 @@ then
 fi
 
 ## run span and check if it worked.
-sudo ./bin/span -f $FPS $device
+sudo ./bin/span -f $FPS $sia -d $device
 if [ ! $? -eq 0 ]
 then
     echo "Span failed."

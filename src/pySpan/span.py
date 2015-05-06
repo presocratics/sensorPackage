@@ -144,6 +144,9 @@ def main():
                       help="Specify serial device.", default="/dev/ttyUSB0")
     parser.add_option("-I", "--no-image", dest="doImage", action="store_false",
                       help="Turn off image handling.", default=True)
+    parser.add_option("-s", "--set-init-attitude", dest="initAtt", action="store_true",
+                      help="Manually set attitude to 0 0 90 5 5 5. Needed when \
+                      moving slowly. Otherwise automatically set.", default=False)
     parser.add_option("-f", "--fps", dest="fps", action="store",
                       help="Set fps of trigger output.", default=25)
 
@@ -154,7 +157,8 @@ def main():
     if options.doImage is True:
         logImages(ser, options.fps)
     waitForFix(ser)
-    setInitAttitude(ser)
+    if options.initAtt is True:
+        setInitAttitude(ser)
     waitForINS(ser)
     logINSPVASA(ser, .1)  # 10Hz
     logACC(ser, .02) # 50Hz

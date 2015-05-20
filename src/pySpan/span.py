@@ -60,7 +60,7 @@ def waitForINS(ser):
 
 def setInitAttitude(ser):
     """Initializes attitude"""
-    ser.write("SETINITATTITUDE 0 0 90 5 5 5\r\n")
+    ser.write("SETINITATTITUDE 0 0 90 15 15 15\r\n")
     if isOK(ser) is False:
         exit("SETINITATTITUDE failed.")
     return

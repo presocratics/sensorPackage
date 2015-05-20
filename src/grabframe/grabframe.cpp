@@ -138,7 +138,7 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Set external trigger hi lo.");
 
     // Set flash strobe output
-    UINT nMode = IO_FLASH_MODE_TRIGGER_LO_ACTIVE;
+    UINT nMode = IO_FLASH_MODE_TRIGGER_HI_ACTIVE;
     if( (rv=is_IO( cam, IS_IO_CMD_FLASH_SET_MODE, (void *) &nMode, sizeof(nMode)))!=IS_SUCCESS )
         err_ueye(cam, rv, "Set flash mode trigger lo active.");
 

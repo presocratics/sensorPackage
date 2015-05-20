@@ -60,7 +60,7 @@ def waitForINS(ser):
 
 def setInitAttitude(ser):
     """Initializes attitude"""
-    ser.write("SETINITATTITUDE 0 0 90 5 5 5\r\n")
+    ser.write("SETINITATTITUDE 0 0 90 15 15 15\r\n")
     if isOK(ser) is False:
         exit("SETINITATTITUDE failed.")
     return
@@ -95,15 +95,7 @@ def logINSPVASA(ser, rate):
 
 def logImages(ser, fps):
     """Sets up external trigger output at fps and turns on 2 trigger inputs"""
-    msg="EVENTINCONTROL MARK1 ENABLE"
-    if sendCommand(ser, msg) is False:
-        exit("message failed: %s" % (msg))
-
     msg="EVENTINCONTROL MARK2 ENABLE"
-    if sendCommand(ser, msg) is False:
-        exit("message failed: %s" % (msg))
-
-    msg="log MARK1TIMEA ONNEW"
     if sendCommand(ser, msg) is False:
         exit("message failed: %s" % (msg))
 

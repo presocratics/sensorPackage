@@ -95,15 +95,7 @@ def logINSPVASA(ser, rate):
 
 def logImages(ser, fps):
     """Sets up external trigger output at fps and turns on 2 trigger inputs"""
-    msg="EVENTINCONTROL MARK1 ENABLE"
-    if sendCommand(ser, msg) is False:
-        exit("message failed: %s" % (msg))
-
     msg="EVENTINCONTROL MARK2 ENABLE"
-    if sendCommand(ser, msg) is False:
-        exit("message failed: %s" % (msg))
-
-    msg="log MARK1TIMEA ONNEW"
     if sendCommand(ser, msg) is False:
         exit("message failed: %s" % (msg))
 

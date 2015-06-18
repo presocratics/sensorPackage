@@ -14,6 +14,9 @@
 # incrememt), then we have a more complicated issue to examine.
 
 
+BEGIN{
+    FS=",";
+}
 
 {
     di=$1-previnc;

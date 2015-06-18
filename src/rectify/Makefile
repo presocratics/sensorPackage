@@ -1,5 +1,5 @@
 rectify:
-	cp rectify.awk ../../bin/rectify
+	cp rectify.py ../../bin/rectify
 
 .PHONY: clean
 clean:

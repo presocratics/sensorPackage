@@ -22,6 +22,10 @@
 #include <iostream>
 int main(int argc, char **argv)
 {
+    if (argc!=3) {
+        fprintf(stderr,"Usage: %s raw debayered\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
     cv::Mat in=cv::imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
     cv::Mat out;
     cvtColor(in, out, CV_BayerBG2BGR ,3);

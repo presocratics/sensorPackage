@@ -40,7 +40,7 @@ then
 fi
 
 ## run span and check if it worked.
-sudo ./bin/span -f $FPS $sia -d $device
+sudo ./bin/span -b -f $FPS $sia -d $device
 if [ ! $? -eq 0 ]
 then
     echo "Span failed."
@@ -58,7 +58,7 @@ fi
 # Leading tabs (not spaces) ignored.
 tee $screenrc <<- EOF
 	logfile ${parent}/data/${date}.gps
-	screen -L -t gps 0 $device 115200
+    screen -L -t gps 0 ./bin/pybin
 	logfile ${parent}/data/${date}.pics
 	screen -L -t cam 1 ./bin/grabframe ${parent}
 	split

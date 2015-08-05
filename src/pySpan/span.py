@@ -60,7 +60,7 @@ def waitForINS(ser):
 
 def setInitAttitude(ser):
     """Initializes attitude"""
-    ser.write("SETINITATTITUDE 0 0 90 15 15 15\r\n")
+    ser.write("SETINITATTITUDE 0 0 90 5 5 5\r\n")
     if isOK(ser) is False:
         exit("SETINITATTITUDE failed.")
     return
@@ -93,13 +93,16 @@ def logINSPVASA(ser, rate):
         exit("INSPVASA failed.")
     return
 
-def logImages(ser, fps):
+def logImages(ser, fps, binary=False):
     """Sets up external trigger output at fps and turns on 2 trigger inputs"""
+    type="A"
+    if binary is True:
+        type="B"
     msg="EVENTINCONTROL MARK2 ENABLE"
     if sendCommand(ser, msg) is False:
         exit("message failed: %s" % (msg))
 
-    msg="log MARK2TIMEA ONNEW"
+    msg="log MARK2TIME%c ONNEW" % (type)
     if sendCommand(ser, msg) is False:
         exit("message failed: %s" % (msg))
 
@@ -111,11 +114,14 @@ def logImages(ser, fps):
         exit("message failed: %s" % (msg))
 
 
-def logACC(ser, rate):
+def logACC(ser, rate, binary=False):
     """Turns on acceleration logging"""
-    msg="LOG usb1 CORRIMUDATASA ontime %f" % (rate)
+    type="A"
+    if binary is True:
+        type="B"
+    msg="LOG usb1 CORRIMUDATAS%c ontime %f" % (type,rate)
     if sendCommand(ser, msg) is False:
-        exit("corrimudatasa Failed.")
+        exit("%s Failed." % (msg))
     return
 
 def sendCommand(ser, msg):
@@ -123,11 +129,14 @@ def sendCommand(ser, msg):
     ser.write("%s\r\n" % (msg))
     return isOK(ser)
 
-def logStatus(ser, rate):
+def logStatus(ser, rate, binary=False):
     """Gets a full message to see status of Span unit"""
-    msg="LOG usb1 bestposa ontime %f" % (rate)
+    type="a"
+    if binary is True:
+        type="b"
+    msg="LOG usb1 bestpos%c ontime %f" % (type,rate)
     if sendCommand(ser, msg) is False:
-        exit("log status Failed.")
+        exit("%s Failed." % (msg))
     return
 
 def main():
@@ -136,6 +145,8 @@ def main():
                       help="Specify serial device.", default="/dev/ttyUSB0")
     parser.add_option("-I", "--no-image", dest="doImage", action="store_false",
                       help="Turn off image handling.", default=True)
+    parser.add_option("-b", "--binary", dest="binary", action="store_true",
+                      help="Use binary communication.", default=False)
     parser.add_option("-s", "--set-init-attitude", dest="initAtt", action="store_true",
                       help="Manually set attitude to 0 0 90 5 5 5. Needed when \
                       moving slowly. Otherwise automatically set.", default=False)
@@ -147,14 +158,18 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     unlogall(ser)
     if options.doImage is True:
-        logImages(ser, options.fps)
+        logImages(ser, options.fps, options.binary)
     waitForFix(ser)
     if options.initAtt is True:
         setInitAttitude(ser)
     waitForINS(ser)
-    logINSPVASA(ser, .1)  # 10Hz
-    logACC(ser, .02) # 50Hz
-    logStatus(ser, 10) # .1Hz
+    logINSPVASA(ser, .1, options.binary)  # 10Hz
+    if options.binary is True:
+        imurate=0.01
+    else:
+        imurate=0.02
+    logACC(ser, imurate, options.binary) # 50Hz
+    logStatus(ser, 10, options.binary) # .1Hz
     print "Logging has begun."
     ser.close()
     sys.exit(0)

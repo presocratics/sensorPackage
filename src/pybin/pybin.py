@@ -70,6 +70,8 @@ def get_defines():
                  1068:"mark2pva",
                  268:"rawimu",
                  325:"rawimus",
+                 231:"marktime",
+                 616:"mark2time",
                 }
 
     '''These are the message formats as defined in the oem6 manual'''
@@ -84,6 +86,8 @@ def get_defines():
                  "mark2pva":'=IddddddddddI',
                  "rawimu":'=Idlllllll',
                  "rawimus":'=Idlllllll',
+                 "marktime":"=lddddI',
+                 "mark2time":"=lddddI',
                  }
 
     '''Field names as defined by oem6 manual. Spaces are replaced with '_' and
@@ -172,6 +176,8 @@ def get_defines():
             "rawimus":['Week','Seconds_into_Week','IMU_Status','Z_Accel_Output',
                       'minusY_Accel_Output','X_Accel_Output','Z_Gyro_Output',
                       'minusY_Gyro_Output','X_Gyro_Output'],
+            "marktime":['week','seconds','offset','offset_std','utc_offset','status'],
+            "mark2time":['week','seconds','offset','offset_std','utc_offset','status'],
            }
     return message_ids,message_fmts,fields
 
@@ -185,7 +191,6 @@ def main():
         msg_name=message_ids[header.Message_ID]
         format=message_fmts[msg_name]
         message_data=read_message(ser,header.Message_Length,format)
-        print(message_data)
         MsgTuple=namedtuple(msg_name,fields[msg_name])
         message=MsgTuple._make(message_data)
         output=list(header)

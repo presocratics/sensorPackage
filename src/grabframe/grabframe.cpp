@@ -86,6 +86,7 @@ initCam ( int cam_num )
     int memoryID[SEQSIZE];
     unsigned int pixelClockRange[3];
     unsigned int maxPixelClock;
+    unsigned int desiredPixelClock=64;
     cam = (HIDS) cam_num;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {
@@ -127,7 +128,7 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Get pixel clock range.");
     }
     maxPixelClock = pixelClockRange[1];
-    if( (rv=is_PixelClock(cam, IS_PIXELCLOCK_CMD_SET,(void*)&maxPixelClock, 
+    if( (rv=is_PixelClock(cam, IS_PIXELCLOCK_CMD_SET,(void*)&desiredPixelClock, 
                     sizeof(maxPixelClock)))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Set pixel clock.");

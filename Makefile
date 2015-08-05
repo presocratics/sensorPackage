@@ -11,6 +11,8 @@ debayer:
 	$(MAKE) -C src/debayer $(MFLAGS)
 rectify:
 	$(MAKE) -C src/rectify $(MFLAGS)
+pybin:
+	$(MAKE) -C src/pybin $(MFLAGS)
 
 clean:
 	$(MAKE) clean -C src/pySpan

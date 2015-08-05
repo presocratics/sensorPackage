@@ -86,11 +86,14 @@ def unlogall(ser):
     print("Unlogall ran successfully")
     return
 
-def logINSPVASA(ser, rate):
+def logINSPVAS(ser, rate, binary=False):
     """Turns on INSPVASA. Position, velocity, attitude, short msg ASCII"""
-    ser.write("LOG usb1 INSPVASA ontime %f\r\n" % (rate))
-    if isOK(ser) is False:
-        exit("INSPVASA failed.")
+    type="A"
+    if binary is True:
+        type="B"
+    msg="LOG usb1 INSPVAS%c ontime %f" % (type,rate)
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
     return
 
 def logImages(ser, fps, binary=False):
@@ -163,7 +166,7 @@ def main():
     if options.initAtt is True:
         setInitAttitude(ser)
     waitForINS(ser)
-    logINSPVASA(ser, .1, options.binary)  # 10Hz
+    logINSPVAS(ser, .1, options.binary)  # 10Hz
     if options.binary is True:
         imurate=0.01
     else:

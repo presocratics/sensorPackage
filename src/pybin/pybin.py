@@ -86,8 +86,8 @@ def get_defines():
                  "mark2pva":'=IddddddddddI',
                  "rawimu":'=Idlllllll',
                  "rawimus":'=Idlllllll',
-                 "marktime":"=lddddI',
-                 "mark2time":"=lddddI',
+                 "marktime":'=lddddI',
+                 "mark2time":'=lddddI',
                  }
 
     '''Field names as defined by oem6 manual. Spaces are replaced with '_' and

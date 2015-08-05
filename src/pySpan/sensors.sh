@@ -40,7 +40,7 @@ then
 fi
 
 ## run span and check if it worked.
-sudo ./bin/span -b -f $FPS $sia -d $device
+./bin/span -b -f $FPS $sia -d $device
 if [ ! $? -eq 0 ]
 then
     echo "Span failed."
@@ -66,4 +66,4 @@ tee $screenrc <<- EOF
 	next
 	focus
 EOF
-sudo screen -c $screenrc
+screen -c $screenrc

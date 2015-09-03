@@ -192,10 +192,6 @@ def main():
         output.extend(list(message))
         print(",".join(map(str,output)))
 
-
-
-
-
 if __name__=='__main__':
     main()
 

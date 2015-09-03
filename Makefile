@@ -1,4 +1,4 @@
-all: span grabframe rmglitch proccam debayer rectify
+all: span grabframe rmglitch proccam debayer rectify pybin
 span:
 	$(MAKE) -C src/pySpan $(MFLAGS)
 grabframe:
@@ -11,6 +11,8 @@ debayer:
 	$(MAKE) -C src/debayer $(MFLAGS)
 rectify:
 	$(MAKE) -C src/rectify $(MFLAGS)
+pybin:
+	$(MAKE) -C src/pybin $(MFLAGS)
 
 clean:
 	$(MAKE) clean -C src/pySpan
@@ -19,3 +21,4 @@ clean:
 	$(MAKE) clean -C src/proccam
 	$(MAKE) clean -C src/debayer
 	$(MAKE) clean -C src/rectify
+	$(MAKE) clean -C src/pybin

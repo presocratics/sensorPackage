@@ -84,8 +84,7 @@ initCam ( int cam_num )
     int rv;
     char* frameMemory[SEQSIZE];
     int memoryID[SEQSIZE];
-    unsigned int pixelClockRange[3];
-    unsigned int maxPixelClock;
+    unsigned int desiredPixelClock=64;
     cam = (HIDS) cam_num;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {
@@ -119,18 +118,21 @@ initCam ( int cam_num )
         }
     }
 
-    // Set max available pixel clock
-    if( (rv=is_PixelClock(cam, IS_PIXELCLOCK_CMD_GET_RANGE,
-                    (void*)pixelClockRange, 
-                    sizeof(pixelClockRange)))!=IS_SUCCESS )
-    {
-        err_ueye(cam, rv, "Get pixel clock range.");
-    }
-    maxPixelClock = pixelClockRange[1];
-    if( (rv=is_PixelClock(cam, IS_PIXELCLOCK_CMD_SET,(void*)&maxPixelClock, 
-                    sizeof(maxPixelClock)))!=IS_SUCCESS )
+    // Set pixelclock to 64MHz. According to documentation, setting the
+    // pixelclock higher will result in more frames lost. Therefore, it is not
+    // a good idea to set this value to maxPixelClock unless we are actually
+    // using the highest framerates.
+    if( (rv=is_PixelClock(cam, IS_PIXELCLOCK_CMD_SET,(void*)&desiredPixelClock, 
+                    sizeof(desiredPixelClock)))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Set pixel clock.");
+    }
+    // Set exposure to 30ms. This will allow us to easily shoot at 25Hz.
+    double exptime=7.;
+    if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*)&exptime,
+                    sizeof(exptime)))!=IS_SUCCESS )
+    {
+        err_ueye(cam, rv, "Set exposure.");
     }
 
     // Set external trigger input
@@ -319,22 +321,25 @@ incrGain ( HIDS cam, int delta )
  * =====================================================================================
  */
     void
-incrShutter ( HIDS cam, int delta )
+incrShutter ( HIDS cam, double delta )
 {
     // Get current value
     int rv;
     double exposure;
-    double range[3];
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE, (void*) &exposure,
                     sizeof(exposure)))!=IS_SUCCESS )
         err_ueye(cam, rv, "Get exposure.");
-    //printf("exposure: %f\n", exposure);
-    if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE, (void *) &range, 
-                    sizeof(range)))!=IS_SUCCESS )
-        err_ueye(cam, rv, "Get exposure range.");
-    //printf("min: %f max: %f incr: %f\n", range[0], range[1], range[2]);
-    exposure+=delta;
-    //printf("new exposure: %f\n", exposure);
+    //if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE, (void *) &range, 
+     //               sizeof(range)))!=IS_SUCCESS )
+      //  err_ueye(cam, rv, "Get exposure range.");
+    if (exposure+delta<7 && exposure+delta>0)
+    {
+        exposure+=delta;
+    }
+    else
+    {
+        fprintf(stderr,"Exposure :%f out of range (0,7)ms. Aborting.\n", exposure+delta);
+    }
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*) &exposure, 
                     sizeof(exposure)))!=IS_SUCCESS)
         err_ueye(cam, rv, "Set exposure.");
@@ -484,7 +489,7 @@ int main(int argc, char* argv[])
                 break;
 
             case 'j':	// Decrease gain.
-                for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], -5);
+                for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], -2);
                 break;
 
             case 'k':	// Increase gain.
@@ -492,11 +497,11 @@ int main(int argc, char* argv[])
                 break;
 
             case 'h':	// Decrease exposure time.
-                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], -1);
+                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], -0.25);
                 break;
 
             case 'l':	// Increase exposure time.
-                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], +3);
+                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], 0.25);
                 break;
 
             case 'b':	// Toggle gain boost.

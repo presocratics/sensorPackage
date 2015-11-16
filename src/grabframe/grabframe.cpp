@@ -94,16 +94,20 @@ initCam ( int cam_num )
     }
 
     // Set camera exposure modes
-    if( (rv=is_SetColorMode( cam, IS_CM_SENSOR_RAW8))!=IS_SUCCESS )
+    if( (rv=is_SetColorMode( cam, IS_CM_SENSOR_RAW8))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "SetColorMode.");
+        exit(EXIT_FAILURE);
+    }
     autoGain(cam);
     bitsPerPixel=8;
     frameWidth=1600;
     frameHeight=1200;
 
     // Initialize memory
-    if( (rv=is_ClearSequence(cam))!=IS_SUCCESS )
+    if( (rv=is_ClearSequence(cam))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "ClearSequence.");
+        exit(EXIT_FAILURE);
+    }
     int i;
     for( i=0; i<SEQSIZE; ++i )
     {
@@ -111,10 +115,12 @@ initCam ( int cam_num )
                         &frameMemory[i], &memoryID[i]))!=IS_SUCCESS )
         {
             err_ueye(cam, rv, "AllocImageMem.");
+            exit(EXIT_FAILURE);
         }
         if( (rv=is_AddToSequence( cam, frameMemory[i], memoryID[i] ))!=IS_SUCCESS )
         {
             err_ueye(cam, rv, "AddToSequence.");
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -126,6 +132,7 @@ initCam ( int cam_num )
                     sizeof(desiredPixelClock)))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Set pixel clock.");
+        exit(EXIT_FAILURE);
     }
     // Set exposure to 30ms. This will allow us to easily shoot at 25Hz.
     double exptime=7.;
@@ -133,28 +140,39 @@ initCam ( int cam_num )
                     sizeof(exptime)))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Set exposure.");
+        exit(EXIT_FAILURE);
     }
 
     // Set external trigger input
-    if( (rv=is_SetExternalTrigger(cam, IS_SET_TRIGGER_HI_LO))!=IS_SUCCESS )
+    if( (rv=is_SetExternalTrigger(cam, IS_SET_TRIGGER_HI_LO))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "Set external trigger hi lo.");
+        exit(EXIT_FAILURE);
+    }
 
     // Set flash strobe output
     UINT nMode = IO_FLASH_MODE_TRIGGER_HI_ACTIVE;
-    if( (rv=is_IO( cam, IS_IO_CMD_FLASH_SET_MODE, (void *) &nMode, sizeof(nMode)))!=IS_SUCCESS )
+    if( (rv=is_IO( cam, IS_IO_CMD_FLASH_SET_MODE, (void *) &nMode, sizeof(nMode)))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "Set flash mode trigger lo active.");
+        exit(EXIT_FAILURE);
+    }
 
     //if( (rv=is_SetBinning(cam, IS_BINNING_2X_VERTICAL|IS_BINNING_2X_HORIZONTAL))!=IS_SUCCESS )
      //   err_ueye(cam, rv, "Set Binning.");
     // Begin transmission
-    if( (rv=is_CaptureVideo(cam, IS_DONT_WAIT))!=IS_SUCCESS )
+    if( (rv=is_CaptureVideo(cam, IS_DONT_WAIT))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "CaptureVideo.");
+        exit(EXIT_FAILURE);
+    }
 #ifndef __linux // Using Windows
-    if( (rv=is_InitEvent(cam, frameEvent[cam-1], IS_SET_EVENT_FRAME))!=IS_SUCCESS )
+    if( (rv=is_InitEvent(cam, frameEvent[cam-1], IS_SET_EVENT_FRAME))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "Init event (Win).");
+        exit(EXIT_FAILURE);
+    }
 #endif
-    if( (rv=is_EnableEvent(cam, IS_SET_EVENT_FRAME))!=IS_SUCCESS )
+    if( (rv=is_EnableEvent(cam, IS_SET_EVENT_FRAME))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "Set event frame.");
+        exit(EXIT_FAILURE);
+    }
 
     return cam;
 }		/* -----  end of function initCam  ----- */
@@ -414,8 +432,10 @@ int main(int argc, char* argv[])
     tmp=localtime(&t);
 
 #ifdef __linux
-    if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 )
+    if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 ) {
         err_sys("strftime");
+        exit(EXIT_FAILURE);
+    }
 #else
     strftime(timestr, sizeof(timestr), "%Y-%m-%d-%H%M%S", tmp);
 #endif
@@ -429,8 +449,10 @@ int main(int argc, char* argv[])
     }
     sprintf(parentdir, "%s/%s", pparent, timestr);
 #ifdef __linux
-    if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
+    if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
         err_sys("mkdir %s", parentdir);
+        exit(EXIT_FAILURE);
+    }
 #else
     _mkdir(parentdir);
 #endif
@@ -471,8 +493,10 @@ int main(int argc, char* argv[])
         }
         sprintf(dirs[cami], "%s/%d", parentdir, cami+1);
 #ifdef __linux
-        if( mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 )
+        if( mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
             err_sys("mkdir %s", dirs[cami]);
+            exit(EXIT_FAILURE);
+        }
 #else
         _mkdir(dirs[cami]);
 #endif

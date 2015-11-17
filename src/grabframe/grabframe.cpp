@@ -17,7 +17,7 @@
  */
 
 #include "grabframe.h"
-#define BINNING 0            /* if 1, we do binning i.e. 800x600 images */
+#define BINNING /* if defined, use binning. comment out to turn off */
 // These are made global so that we can access them after SIGINT.
 HIDS *camera; 
 char **dirs; 
@@ -100,13 +100,13 @@ initCam ( int cam_num )
     }
     autoGain(cam);
     bitsPerPixel=8;
-    if (BINNING==0) {
-        frameWidth=1600;
-        frameHeight=1200;
-    } else {
-        frameWidth=800;
-        frameHeight=600;
-    }
+#ifdef BINNING
+    frameWidth=800;
+    frameHeight=600;
+#else
+    frameWidth=1600;
+    frameHeight=1200;
+#endif
 
     // Initialize memory
     if( (rv=is_ClearSequence(cam))!=IS_SUCCESS ) {
@@ -161,12 +161,12 @@ initCam ( int cam_num )
         exit(EXIT_FAILURE);
     }
 
-    if (BINNING==1) {
-        if( (rv=is_SetBinning(cam, IS_BINNING_2X_VERTICAL|IS_BINNING_2X_HORIZONTAL))!=IS_SUCCESS ) {
-            err_ueye(cam, rv, "Set Binning.");
-            exit(EXIT_FAILURE);
-        }
+#ifdef BINNING
+    if( (rv=is_SetBinning(cam, IS_BINNING_2X_VERTICAL|IS_BINNING_2X_HORIZONTAL))!=IS_SUCCESS ) {
+        err_ueye(cam, rv, "Set Binning.");
+        exit(EXIT_FAILURE);
     }
+#endif
     // Begin transmission
     if( (rv=is_CaptureVideo(cam, IS_DONT_WAIT))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "CaptureVideo.");
@@ -297,13 +297,13 @@ getImage ( HIDS cam, char *dir, int show )
     // Write to a Mat
     if( show==1 )
     {
-        if (BINNING==1) {
-            cv::Mat image(600,800,CV_8UC1, NULL, 800);
-            cv::Mat color(600,800,CV_8UC3, NULL, 800);
-        } else {
-            cv::Mat image(1200,1600,CV_8UC1, NULL, 1600);
-            cv::Mat color(1200,1600,CV_8UC3, NULL, 1600);
-        }
+#ifdef BINNING
+        cv::Mat image(600,800,CV_8UC1, NULL, 800);
+        cv::Mat color(600,800,CV_8UC3, NULL, 800);
+#else
+        cv::Mat image(1200,1600,CV_8UC1, NULL, 1600);
+        cv::Mat color(1200,1600,CV_8UC3, NULL, 1600);
+#endif
         image.data = (uchar *) currentFrame;
         cvtColor(image, color, CV_BayerBG2BGR, 3);
         cv::imshow("image", color);

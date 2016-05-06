@@ -513,12 +513,12 @@ int main(int argc, char* argv[])
         }
         sprintf(dirs[cami], "%s/%d", parentdir, cami+1);
 #ifdef __linux
-        if( mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
+        if( debug_mode==0 && mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
             err_sys("mkdir %s", dirs[cami]);
             exit(EXIT_FAILURE);
         }
 #else
-        _mkdir(dirs[cami]);
+        if (debug_mode==0) _mkdir(dirs[cami]);
 #endif
     }
 

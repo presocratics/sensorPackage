@@ -25,6 +25,7 @@ int num_cams;
 #ifndef __linux
 HANDLE frameEvent[2];
 #endif
+int debug_mode = 0;
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -310,12 +311,14 @@ getImage ( HIDS cam, char *dir, int show )
         cv::waitKey(1);
     }
     // Save the image.
-    swprintf(buffer, 100, L"%s/%010d.bmp", dir, framenumber);
-    ImageFileParams.pwchFileName = buffer;
-    if( (rv=is_ImageFile( cam, IS_IMAGE_FILE_CMD_SAVE, (void*) &ImageFileParams,
-            sizeof(ImageFileParams) ))!=IS_SUCCESS )
-    {
-        err_ueye(cam, rv, "Save image.");
+    if (debug_mode==0) {
+        swprintf(buffer, 100, L"%s/%010d.bmp", dir, framenumber);
+        ImageFileParams.pwchFileName = buffer;
+        if( (rv=is_ImageFile( cam, IS_IMAGE_FILE_CMD_SAVE, (void*) &ImageFileParams,
+                sizeof(ImageFileParams) ))!=IS_SUCCESS )
+        {
+            err_ueye(cam, rv, "Save image.");
+        }
     }
 
     if( (rv=is_UnlockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
@@ -430,6 +433,7 @@ autoGain ( HIDS cam )
  */
 int main(int argc, char* argv[])
 {
+    // in debug mode, not images are written
     char pparent[100];
     char parentdir[100];
     char timestr[200];
@@ -443,6 +447,10 @@ int main(int argc, char* argv[])
     t=time(NULL);
     tmp=localtime(&t);
 
+    if (argc==2) { // Check for debug mode
+        if (!strcmp("-d",argv[1])) debug_mode=1;
+    }
+
 #ifdef __linux
     if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 ) {
         err_sys("strftime");
@@ -451,7 +459,7 @@ int main(int argc, char* argv[])
 #else
     strftime(timestr, sizeof(timestr), "%Y-%m-%d-%H%M%S", tmp);
 #endif
-    if(argc==2) // Parent dir is set
+    if(argc==2 && debug_mode==0) // Parent dir is set
     {
         sprintf(pparent, "%s/images", argv[1]);
     }
@@ -461,12 +469,12 @@ int main(int argc, char* argv[])
     }
     sprintf(parentdir, "%s/%s", pparent, timestr);
 #ifdef __linux
-    if( mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
+    if( debug_mode==0 && mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
         err_sys("mkdir %s", parentdir);
         exit(EXIT_FAILURE);
     }
 #else
-    _mkdir(parentdir);
+    if (debug_mode==0) _mkdir(parentdir);
 #endif
 
     if( is_GetNumberOfCameras(&num_cams)!=IS_SUCCESS )

@@ -130,6 +130,11 @@ initCam ( int cam_num )
         }
     }
 
+    if( (rv=is_InitImageQueue(cam,0))!=IS_SUCCESS ) {
+        err_ueye(cam, rv, "Init image queue");
+        exit(EXIT_FAILURE);
+    }
+
     // Set pixelclock to 64MHz. According to documentation, setting the
     // pixelclock higher will result in more frames lost. Therefore, it is not
     // a good idea to set this value to maxPixelClock unless we are actually
@@ -217,27 +222,14 @@ getImage ( HIDS cam, char *dir, int show )
 
     // Manage memory for the next frame.
     timedout=0;
-#ifdef __linux
-    if( (rv=is_WaitEvent(cam, IS_SET_EVENT_FRAME, 1000))==IS_NO_SUCCESS )
+    if( (rv=is_WaitForNextImage(cam, 2000, &currentFrame, &frameId))!=IS_SUCCESS )
     {
-        err_ueye(cam, rv, "Wait Event.");
+        err_ueye(cam, rv, "Wait for next image.");
     }
     else if( rv==IS_TIMED_OUT )
     {
         timedout=1;
     }
-#else // Windows
-    if( WaitForSingleObject( frameEvent[cam-1] , 1000)==WAIT_TIMEOUT )
-    {
-        timedout=1;
-    }
-#endif
-    if( (rv=is_GetActiveImageMem(cam, &currentFrame, &frameId))!=IS_SUCCESS )
-        err_ueye(cam, rv, "GetActiveImageMem.");
-    frameId=(frameId==1) ? SEQSIZE : frameId-1;
-
-    if( (rv=is_LockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
-        err_ueye(cam, rv, "LockSeqBuf.");
 
     // Get capture status
     UEYE_CAPTURE_STATUS_INFO capStat;

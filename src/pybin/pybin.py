@@ -43,7 +43,6 @@ def readHeader(ser,isShort=False):
 
     return tuple._make(header_data)
 
-
 def read_message(ser,msg_len,format):
     """Reads according to format"""
     message=ser.read(msg_len)
@@ -62,32 +61,44 @@ def get_defines():
     message_ids={42:"bestpos", 812:"corrimudata", 813:"corrimudatas",
                  264:"inscov", 320:"inscovs", 507:"inspva", 508:"inspvas",
                  1067:"mark1pva", 1068:"mark2pva", 268:"rawimu", 325:"rawimus",
-                 231:"marktime", 616:"mark2time", }
+                 231:"marktime", 616:"mark2time", 726:"bestutm"}
 
     '''These are the message formats as defined in the oem6 manual'''
-    message_fmts={"bestpos":'=IIdddfIfff4sffBBBBBccc',
-                 "corrimudata":'=Iddddddd',
-                 "corrimudatas":'=Iddddddd',
-                 "inscov":'=Id9d9d9d',
-                 "inscovs":'=Id9d9d9d',
-                 "inspva": '=IddddddddddI',
-                 "inspvas":'=IddddddddddI',
-                 "mark1pva":'=IddddddddddI',
-                 "mark2pva":'=IddddddddddI',
-                 "rawimu":'=Idlllllll',
-                 "rawimus":'=Idlllllll',
-                 "marktime":'=lddddI',
-                 "mark2time":'=lddddI',
+    message_fmts={"bestpos":'=IIdddfI3f4sff5Bccc',
+                  "bestutm":'=IILL3dfI3f4s2f5B3c',
+                  "corrimudata":'=Iddddddd',
+                  "corrimudatas":'=Iddddddd',
+                  "inscov":'=Id9d9d9d',
+                  "inscovs":'=Id9d9d9d',
+                  "inspva": '=IddddddddddI',
+                  "inspvas":'=IddddddddddI',
+                  "mark1pva":'=IddddddddddI',
+                  "mark2pva":'=IddddddddddI',
+                  "rawimu":'=Ldlllllll',
+                  "rawimus":'=Ldlllllll',
+                  "marktime":'=lddddI',
+                  "mark2time":'=lddddI',
                  }
 
     '''Field names as defined by oem6 manual. Spaces are replaced with '_' and
     non alphanumeric characters are deleted or abbreviated. Capitalizations are
-    retained wherever possible.'''
+    retained wherever possible. In the oem6 documentation, field names may vary
+    slightly between commands (e.g. 'sol stat' and 'sol status') and these
+    variations are carried over here.  Therefore make sure to consult the exact
+    command when determining field names.'''
     fields={"bestpos":['sol_stat','pos_type','lat',
                        'lon','hgt','undulation','datum_id',
                        'lat_sig','lon_sig','hgt_sig','stn_id','diff_age',
                        'sol_age','SVs','solnSVs','ggL1','ggL1L2',
                        'Reserved','ext_sol_stat','Reserved2','sig_mask'],
+            "bestutm":['sol_status', 'pos_type', 'znumber', 'zletter',
+                       'northing', 'easting', 'hgt', 'undulation', 'datum_id',
+                       'nstd', 'estd', 'hgtstd', 'stn_id', 'diff_age',
+                       'sol_age', 'SVs', 'solnSVs', 'ggL1', 'solnMultiSV',
+                       'Reserved', 'ext_sol_stat',
+                       'Galileo_and_BeiDou_sig_mask',
+                       'GPS_and_GLONASS_sig_mask'],
+
             "corrimudata":['Week','Seconds','PitchRate','RollRate','YawRate',
                            'LateralAcc','LongitudinalAcc','VerticalAcc'],
             "corrimudatas":['Week','Seconds','PitchRate','RollRate','YawRate',

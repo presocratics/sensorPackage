@@ -62,7 +62,9 @@ def get_defines():
                  264:"inscov", 320:"inscovs", 507:"inspva", 508:"inspvas",
                  1067:"mark1pva", 1068:"mark2pva", 268:"rawimu", 325:"rawimus",
                  231:"marktime", 616:"mark2time", 726:"bestutm",
-                 1362:"imuratecorrimus",1305:"imuratepvas"}
+                 1362:"imuratecorrimus",1305:"imuratepvas",1465:"inspvax",
+                 1462:"rawimusx",1461:"rawimux",263:"insatt",319:"insatts",
+                 1457:"insattx"}
 
     '''These are the message formats as defined in the oem6 manual'''
     message_fmts={"bestpos":'=IIdddfI3f4sff5Bccc',
@@ -81,6 +83,12 @@ def get_defines():
                   "mark2time":'=lddddI',
                   "imuratecorrimus":'=I7d',
                   "imuratepvas":'=I10dI',
+                  "inspvax":'=2I3df6d9fIH',
+                  "rawimux":'=BBHdI6l',
+                  "rawimusx":'=BBHdI6l',
+                  "insatt":'=L4dI',
+                  "insatts":'=L4dI',
+                  "insattx":'=II3d3fIH',
                  }
 
     '''Field names as defined by oem6 manual. Spaces are replaced with '_' and
@@ -142,6 +150,19 @@ def get_defines():
             "inspvas":['Week','Seconds','Latitude','Longitude','Height',
                        'North_Velocity','East_Velocity','Up_Velocity',
                        'Roll','Pitch','Azimuth','Status'],
+            "inspvax":['INS_Status', 'Pos_Type', 'Lat', 'Long', 'Height',
+                       'Undulation', 'North_Vel', 'East_Vel', 'Up_Vel', 'Roll',
+                       'Pitch', 'Azimuth', 'Latstd', 'Longstd', 'Heightstd',
+                       'North_Velstd', 'East_Velstd', 'Up_Velstd', 'Rollstd',
+                       'Pitchstd', 'Azimuthstd', 'Ext_sol_stat',
+                       'Time_Since_Update'],
+            "insatt":['Week', 'Seconds_into_week', 'Roll', 'Pitch', 'Azimuth',
+                      'Status'],
+            "insatts":['Week', 'Seconds_into_week', 'Roll', 'Pitch', 'Azimuth',
+                      'Status'],
+            "insattx":['INS_Status', 'Pos_Type', 'Roll', 'Pitch', 'Azimuth',
+                       'Rollstd', 'Pitchstd', 'Azimuthstd', 'Ext_sol_stat',
+                       'Time_Since_Update'],
             "imuratepvas":['Week', 'Seconds', 'Latitude', 'Longitude', 'Height',
                            'North_Velocity', 'East_Velocity', 'Up_Velocity',
                            'Roll', 'Pitch', 'Azimuth', 'Status'],
@@ -157,6 +178,14 @@ def get_defines():
             "rawimus":['Week','Seconds_into_Week','IMU_Status','Z_Accel_Output',
                        'minusY_Accel_Output','X_Accel_Output','Z_Gyro_Output',
                        'minusY_Gyro_Output','X_Gyro_Output'],
+            "rawimux":['IMU_Error', 'IMU_Type', 'GNSS_Week',
+                       'GNSS_Week_Seconds', 'IMU_Status', 'Z_Accel',
+                       'minusY_Accel', 'X_Accel', 'Z_Gyro', 'minusY_Gyro',
+                       'X_Gyro'],
+            "rawimusx":['IMU_Error', 'IMU_Type', 'GNSS_Week',
+                       'GNSS_Week_Seconds', 'IMU_Status', 'Z_Accel',
+                       'minusY_Accel', 'X_Accel', 'Z_Gyro', 'minusY_Gyro',
+                       'X_Gyro'],
             "marktime":['week','seconds','offset','offset_std','utc_offset','status'],
             "mark2time":['week','seconds','offset','offset_std','utc_offset','status'],
            }

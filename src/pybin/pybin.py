@@ -61,7 +61,8 @@ def get_defines():
     message_ids={42:"bestpos", 812:"corrimudata", 813:"corrimudatas",
                  264:"inscov", 320:"inscovs", 507:"inspva", 508:"inspvas",
                  1067:"mark1pva", 1068:"mark2pva", 268:"rawimu", 325:"rawimus",
-                 231:"marktime", 616:"mark2time", 726:"bestutm"}
+                 231:"marktime", 616:"mark2time", 726:"bestutm",
+                 1362:"imuratecorrimus",1305:"imuratepvas"}
 
     '''These are the message formats as defined in the oem6 manual'''
     message_fmts={"bestpos":'=IIdddfI3f4sff5Bccc',
@@ -78,6 +79,8 @@ def get_defines():
                   "rawimus":'=Ldlllllll',
                   "marktime":'=lddddI',
                   "mark2time":'=lddddI',
+                  "imuratecorrimus":'=I7d',
+                  "imuratepvas":'=I10dI',
                  }
 
     '''Field names as defined by oem6 manual. Spaces are replaced with '_' and
@@ -98,7 +101,9 @@ def get_defines():
                        'Reserved', 'ext_sol_stat',
                        'Galileo_and_BeiDou_sig_mask',
                        'GPS_and_GLONASS_sig_mask'],
-
+            "imuratecorrimus":['Week', 'Seconds', 'PitchRate', 'RollRate',
+                               'YawRate', 'LateralAcc', 'LongitudinalAcc',
+                               'VerticalAcc'],
             "corrimudata":['Week','Seconds','PitchRate','RollRate','YawRate',
                            'LateralAcc','LongitudinalAcc','VerticalAcc'],
             "corrimudatas":['Week','Seconds','PitchRate','RollRate','YawRate',
@@ -137,6 +142,9 @@ def get_defines():
             "inspvas":['Week','Seconds','Latitude','Longitude','Height',
                        'North_Velocity','East_Velocity','Up_Velocity',
                        'Roll','Pitch','Azimuth','Status'],
+            "imuratepvas":['Week', 'Seconds', 'Latitude', 'Longitude', 'Height',
+                           'North_Velocity', 'East_Velocity', 'Up_Velocity',
+                           'Roll', 'Pitch', 'Azimuth', 'Status'],
             "mark1pva":['Week','Seconds','Latitude','Longitude','Height',
                         'North_Velocity','East_Velocity','Up_Velocity',
                         'Roll','Pitch','Azimuth','Status'],

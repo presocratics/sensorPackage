@@ -1,6 +1,6 @@
 
 CXXFLAGS = -Wall -Werror -Wno-write-strings -std=c++03 -pedantic-errors
-CXXFLAGS += -g
+#CXXFLAGS += -g
 CXXFLAGS += $(shell pkg-config --cflags opencv)
 LIBS = -lueye_api
 LIBS += $(shell pkg-config --libs opencv)

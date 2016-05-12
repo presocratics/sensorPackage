@@ -58,9 +58,6 @@ signal_callback_handler ( int signum )
     camera=NULL;
     dirs	= NULL;
     exit( signum );
-}				/* ----------  end of function main  ---------- */
-
-
 }		/* -----  end of function signal_callback_handler  ----- */
 
 /* 

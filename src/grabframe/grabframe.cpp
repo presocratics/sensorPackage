@@ -4,6 +4,11 @@
  *       Filename:  grabframe.cpp
  *
  *    Description:  grabs frame and saves it to outdir
+ *          Usage:  grabframe [parent_directory] [-d] [-1]
+ *                  parent_directory: directory to store image in. Default: "."
+ *                  -d  debug_mode: Images are not saved. No timeout on event
+ *                  wait handler. Cannot be used with parent_directory.
+ *                  -1 once: Implies -d, and exits after one frame is captured.
  *
  *        Version:  1.0
  *        Created:  10/02/2014 10:24:53 AM
@@ -49,9 +54,13 @@ signal_callback_handler ( int signum )
             err_ueye(camera[i], rv, "Disable event.");
     }
     free(dirs);
+    free(camera);
     camera=NULL;
     dirs	= NULL;
     exit( signum );
+}				/* ----------  end of function main  ---------- */
+
+
 }		/* -----  end of function signal_callback_handler  ----- */
 
 /* 
@@ -222,7 +231,7 @@ getImage ( HIDS cam, char *dir, int show )
 
     // Manage memory for the next frame.
     timedout=0;
-    if( (rv=is_WaitForNextImage(cam, 2000, &currentFrame, &frameId))!=IS_SUCCESS )
+    if( (rv=is_WaitForNextImage(cam, (debug_mode) ? INFINITE : 2000, &currentFrame, &frameId))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Wait for next image.");
     }
@@ -430,6 +439,8 @@ int main(int argc, char* argv[])
     char parentdir[100];
     char timestr[200];
 
+    int once=0;
+
     // Get time for image storage dir.
     time_t t;
     struct tm *tmp;
@@ -440,7 +451,18 @@ int main(int argc, char* argv[])
     tmp=localtime(&t);
 
     if (argc==2) { // Check for debug mode
-        if (!strcmp("-d",argv[1])) debug_mode=1;
+        if (!strcmp("-d",argv[1])) {
+            debug_mode=1;
+        }
+        else { // Check for one-time mode
+            if (!strcmp("-1",argv[1])) {
+                once=1;
+                debug_mode=1;
+            }
+        }
+    } else if (argc>2) {
+        fprintf(stderr, "grabframe takes at most one argument: <parent_directory>, -d, -1.\n");
+        exit(1);
     }
 
 #ifdef __linux
@@ -562,6 +584,7 @@ int main(int argc, char* argv[])
             int show=(i%10==0) && (cami==0) ? 1 : 0;
             getImage(camera[cami], dirs[cami], show);
         }
+        if (once) break;
     }
     for( cami=0; cami<num_cams; ++cami ) 
     {
@@ -575,7 +598,7 @@ int main(int argc, char* argv[])
     camera	= NULL;
     free (dirs);
     dirs	= NULL;
-    printf("success\n");
+    exit(0);
 }				/* ----------  end of function main  ---------- */
 
 

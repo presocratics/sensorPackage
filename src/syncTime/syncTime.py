@@ -82,6 +82,7 @@ def closeAndExit(fn1,fn2):
 
 def main():
     parser = argparse.ArgumentParser(description="Synchronize gps and camera timestamps")
+    parser.add_argument('-o', type=float, default=0, help='Set initial offset between gps and camera')
     parser.add_argument('gps', help='File containing gps times in GPSWK,SECONDS format')
     parser.add_argument('cam', help="""File containing cam times in
                         FRAMENO,CAMTIME,PCTIME(UTC) format""")
@@ -111,7 +112,7 @@ def main():
             diff=gpsutc-ctime
 
         #print("%0.2f,%0.2f,%0.2f,%d,%d" % (gpsutc,ctime,diff,fno-prevfno,fno))
-        print("%0.3f,IMG,/home/marty/ARC/data/lakeofwoods/2015-05-06-172808/debayer/640x480/crop/%010d-0.png" % (gpsutc,fno))
+        print("%0.3f,IMG,%010d" % (gpsutc,fno))
         prevfno=fno
         prevgps=gpsutc
         iter+=1

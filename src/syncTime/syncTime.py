@@ -111,7 +111,6 @@ def main():
             fno,ctime,pctime = getNextCam(cam,coff)
             diff=gpsutc-ctime
 
-        #print("%0.2f,%0.2f,%0.2f,%d,%d" % (gpsutc,ctime,diff,fno-prevfno,fno))
         print("%0.3f,IMG,%010d" % (gpsutc,fno))
         prevfno=fno
         prevgps=gpsutc

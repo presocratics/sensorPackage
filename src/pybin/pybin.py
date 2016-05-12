@@ -58,37 +58,38 @@ def read_CRC(ser):
 def get_defines():
     """Returns constant data"""
     '''message ids for each message as defined in the oem6 manual'''
-    message_ids={42:"bestpos", 812:"corrimudata", 813:"corrimudatas",
-                 264:"inscov", 320:"inscovs", 507:"inspva", 508:"inspvas",
-                 1067:"mark1pva", 1068:"mark2pva", 268:"rawimu", 325:"rawimus",
-                 231:"marktime", 616:"mark2time", 726:"bestutm",
-                 1362:"imuratecorrimus",1305:"imuratepvas",1465:"inspvax",
-                 1462:"rawimusx",1461:"rawimux",263:"insatt",319:"insatts",
-                 1457:"insattx"}
+    message_ids={42:"bestpos", 726:"bestutm", 812:"corrimudata",
+                 813:"corrimudatas", 1362:"imuratecorrimus", 1305:"imuratepvas",
+                 263:"insatt", 319:"insatts", 1457:"insattx", 264:"inscov",
+                 320:"inscovs", 507:"inspva", 508:"inspvas", 1465:"inspvax",
+                 1067:"mark1pva", 1068:"mark2pva", 616:"mark2time",
+                 231:"marktime", 268:"rawimu", 325:"rawimus", 1462:"rawimusx",
+                 1461:"rawimux", 101:"time", }
 
     '''These are the message formats as defined in the oem6 manual'''
     message_fmts={"bestpos":'=IIdddfI3f4sff5Bccc',
                   "bestutm":'=IILL3dfI3f4s2f5B3c',
                   "corrimudata":'=Iddddddd',
                   "corrimudatas":'=Iddddddd',
+                  "imuratecorrimus":'=I7d',
+                  "imuratepvas":'=I10dI',
+                  "insatt":'=L4dI',
+                  "insatts":'=L4dI',
+                  "insattx":'=II3d3fIH',
                   "inscov":'=Id9d9d9d',
                   "inscovs":'=Id9d9d9d',
                   "inspva": '=IddddddddddI',
                   "inspvas":'=IddddddddddI',
+                  "inspvax":'=2I3df6d9fIH',
                   "mark1pva":'=IddddddddddI',
                   "mark2pva":'=IddddddddddI',
+                  "mark2time":'=lddddI',
+                  "marktime":'=lddddI',
                   "rawimu":'=Ldlllllll',
                   "rawimus":'=Ldlllllll',
-                  "marktime":'=lddddI',
-                  "mark2time":'=lddddI',
-                  "imuratecorrimus":'=I7d',
-                  "imuratepvas":'=I10dI',
-                  "inspvax":'=2I3df6d9fIH',
                   "rawimux":'=BBHdI6l',
                   "rawimusx":'=BBHdI6l',
-                  "insatt":'=L4dI',
-                  "insatts":'=L4dI',
-                  "insattx":'=II3d3fIH',
+                  "time":'=I3dL4BLI',
                  }
 
     '''Field names as defined by oem6 manual. Spaces are replaced with '_' and
@@ -188,6 +189,9 @@ def get_defines():
                        'X_Gyro'],
             "marktime":['week','seconds','offset','offset_std','utc_offset','status'],
             "mark2time":['week','seconds','offset','offset_std','utc_offset','status'],
+            "time":['clock_status', 'offset', 'offset_std', 'utc_offset',
+                    'utc_year', 'utc_month', 'utc_day', 'utc_hour', 'utc_min',
+                    'utc_ms', 'utc_status'],
            }
     return message_ids,message_fmts,fields
 

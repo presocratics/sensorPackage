@@ -450,15 +450,19 @@ int main(int argc, char* argv[])
     if (argc==2) { // Check for debug mode
         if (!strcmp("-d",argv[1])) {
             debug_mode=1;
-        }
-        else { // Check for one-time mode
-            if (!strcmp("-1",argv[1])) {
+        } else if (!strcmp("-1",argv[1])) { // Check for one time mode
                 once=1;
                 debug_mode=1;
-            }
+        } else if (!strcmp("-h", argv[1])) { // Check for help
+            fprintf(stderr, "%s [-d] [-1] [parent directory]\n \
+                    -d\tDebug mode: Captured images are not saved.\n \
+                    -1\tOne-time mode: Captures only one image and exits. Implies -d.\n \
+                    PARENT DIRECTORY\tDirectory where camera images are stored. Timestamped subfolders are created.\n", argv[0]);
+            exit(0);
         }
     } else if (argc>2) {
-        fprintf(stderr, "grabframe takes at most one argument: <parent_directory>, -d, -1.\n");
+        fprintf(stderr, "grabframe takes at most one argument: <parent_directory>, -d, -1.\n \
+                Use -h for help.\n");
         exit(1);
     }
 

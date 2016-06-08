@@ -516,7 +516,6 @@ int main(int argc, char* argv[])
 #endif
 
     int cami;
-    char camnamebuf[50];
     for( cami=0; cami<num_cams; ++cami ) 
     {
         camera[cami]=initCam(0);
@@ -527,8 +526,7 @@ int main(int argc, char* argv[])
             fprintf ( stderr, "\ndynamic memory allocation failed\n" );
             exit (EXIT_FAILURE);
         }
-        sprintf(camnamebuf,"cam%d",cami);
-        sprintf(dirs[cami], "%s/%s", parentdir, camnamebuf);
+        sprintf(dirs[cami], "%s/cam%d", parentdir, cami);
 #ifdef __linux
         if( debug_mode==0 && mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
             err_sys("mkdir %s", dirs[cami]);

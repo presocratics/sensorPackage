@@ -39,8 +39,8 @@ int main (int argc, const char* argv[])
 			//parsing the path
 			string frame_num = line_input.substr(0,pos);
 			string frame_ts = line_input.substr(pos+1,line_input.length());
-			string frame_need_rename = path_input + frame_num +".bmp";
-			string frame_need_parse = path_output + frame_ts + ".bmp";
+			string frame_need_rename = path_input + "cam0/" + frame_num +".bmp";
+			string frame_need_parse = path_output + "cam0/" + frame_ts + ".bmp";
 			Mat in=imread(frame_need_rename, CV_LOAD_IMAGE_GRAYSCALE);
     		Mat out;
     		cvtColor(in, out, CV_BayerBG2BGR);

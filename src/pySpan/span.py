@@ -127,6 +127,16 @@ def logACC(ser, rate, binary=False):
         exit("%s Failed." % (msg))
     return
 
+def logRawimu(ser, rate, binary=False):
+    """Logs RAWIMU"""
+    type="A"
+    if binary is True:
+        type="B"
+    msg="LOG usb1 RAWIMUS%c ontime %f" % (type,rate)
+    if sendCommand(ser, msg) is False:
+        exit("%s Failed." % (msg))
+    return
+
 def sendCommand(ser, msg):
     """Sends a command and verifies it is received correctly"""
     ser.write("%s\r\n" % (msg))
@@ -155,6 +165,10 @@ def main():
                       moving slowly. Otherwise automatically set.", default=False)
     parser.add_option("-f", "--fps", dest="fps", action="store",
                       help="Set fps of trigger output.", default=25)
+    parser.add_option("-r", "--raw", dest="raw", action="store_true",
+                      help="Collect rawimu.", default=False)
+    parser.add_option("--no-pva", dest="pva", action="store_false",
+                      help="Do not collect pva. Implies -r.", default=True)
 
     (options, args)=parser.parse_args()
     ser=connectToGPS(options.device)
@@ -162,16 +176,21 @@ def main():
     unlogall(ser)
     if options.doImage is True:
         logImages(ser, options.fps, options.binary)
-    waitForFix(ser)
+    if options.pva is True:
+        waitForFix(ser)
     if options.initAtt is True:
         setInitAttitude(ser)
-    waitForINS(ser)
-    logINSPVAS(ser, .1, options.binary)  # 10Hz
+    if options.pva is True:
+        waitForINS(ser)
+        logINSPVAS(ser, .1, options.binary)  # 10Hz
     if options.binary is True:
         imurate=0.01
     else:
         imurate=0.02
-    logACC(ser, imurate, options.binary) # 50Hz
+    if options.pva is False or options.raw is True:
+        logRawimu(ser, imurate, options.binary)
+    else:
+        logACC(ser, imurate, options.binary) # 50Hz
     logStatus(ser, 10, options.binary) # .1Hz
     print "Logging has begun."
     ser.close()

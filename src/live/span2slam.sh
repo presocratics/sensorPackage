@@ -1,10 +1,14 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # span2slam.sh
 # Martin Miller
 # Created: 2016/06/07
 # Converts SPAN output to SLAM output.
 # Writes sensors to individual fifos
 # Usage: pybin | tee data.gps | span2slam
+rm -f /tmp/mark2time.ff
+mkfifo /tmp/mark2time.ff
+
+~/ARC/sensorPackage/src/syncTime/syncTime.py /tmp/mark2time.ff <(cut -d, -f2,3,4 $1) > img.txt &
 
 awk -F, 'function euler2qbw(roll,pitch,yaw,q) {
              q[0] = cos(roll/2)*cos(pitch/2)*cos(yaw/2)+sin(roll/2)*sin(pitch/2)*sin(yaw/2)
@@ -51,6 +55,6 @@ awk -F, 'function euler2qbw(roll,pitch,yaw,q) {
          200*$8,200*$7,-200*$9)}
 
          # Process MARK2TIME
-         /^616/ {printf("%d,%0.9f\n", $8,$9*1e-3) > "mark2time.txt" }'
+         /^616/ {print $8,$9*1e-3 > "/tmp/mark2time.ff" }' 
 
-
+rm -f /tmp/mark2time.ff

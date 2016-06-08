@@ -8,8 +8,8 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 
-#define PATHINPUT "/home/sdw/Desktop/clib_rename/datainput/"
-#define PATHOUTPUT "/home/sdw/Desktop/clib_rename/dataset/"
+//#define PATHINPUT "/home/sdw/Desktop/clib_rename/datainput/"
+//#define PATHOUTPUT "/home/sdw/Desktop/clib_rename/dataset/"
 using namespace std;
 using namespace cv;
 
@@ -19,7 +19,7 @@ int main (int argc, const char* argv[])
 	{
 		cout << "wrong input" << endl;
 		cout << "How to use:" << endl;
-		cout << "            ./clib_rename [OPTION] [input dir] [output dir]" << endl;
+		cout << "           | ./clib_rename [OPTION] [input dir] [output dir]" << endl;
 
 		return -1;
 	}

@@ -1,3 +1,7 @@
+//Author: Dongwei Shi
+//Created: 06/07/2016
+//Description: this program converts grayscal image to rgb and save it with timestamp
+//Usage: ./clib_rename [OPTION] [input dir] [output dir]
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -14,6 +18,9 @@ int main (int argc, const char* argv[])
 	if(argc != 4)
 	{
 		cout << "wrong input" << endl;
+		cout << "How to use:" << endl;
+		cout << "            ./clib_rename [OPTION] [input dir] [output dir]" << endl;
+
 		return -1;
 	}
 

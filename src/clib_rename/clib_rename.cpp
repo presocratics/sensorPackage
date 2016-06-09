@@ -1,11 +1,15 @@
+//Author: Dongwei Shi
+//Created: 06/07/2016
+//Description: this program converts grayscal image to rgb and save it with timestamp
+//Usage: ./clib_rename [OPTION] [input dir] [output dir]
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
 
-#define PATHINPUT "/home/sdw/Desktop/clib_rename/datainput/"
-#define PATHOUTPUT "/home/sdw/Desktop/clib_rename/dataset/"
+//#define PATHINPUT "/home/sdw/Desktop/clib_rename/datainput/"
+//#define PATHOUTPUT "/home/sdw/Desktop/clib_rename/dataset/"
 using namespace std;
 using namespace cv;
 
@@ -14,6 +18,9 @@ int main (int argc, const char* argv[])
 	if(argc != 4)
 	{
 		cout << "wrong input" << endl;
+		cout << "How to use:" << endl;
+		cout << "           | ./clib_rename [OPTION] [input dir] [output dir]" << endl;
+
 		return -1;
 	}
 
@@ -32,8 +39,8 @@ int main (int argc, const char* argv[])
 			//parsing the path
 			string frame_num = line_input.substr(0,pos);
 			string frame_ts = line_input.substr(pos+1,line_input.length());
-			string frame_need_rename = path_input + frame_num +".bmp";
-			string frame_need_parse = path_output + frame_ts + ".bmp";
+			string frame_need_rename = path_input + "cam0/" + frame_num +".bmp";
+			string frame_need_parse = path_output + "cam0/" + frame_ts + ".bmp";
 			Mat in=imread(frame_need_rename, CV_LOAD_IMAGE_GRAYSCALE);
     		Mat out;
     		cvtColor(in, out, CV_BayerBG2BGR);

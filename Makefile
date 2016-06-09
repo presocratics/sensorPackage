@@ -15,6 +15,8 @@ pybin:
 	$(MAKE) -C src/pybin $(MFLAGS)
 syncTime:
 	$(MAKE) -C src/syncTime $(MFLAGS)
+span2slam:
+	$(MAKE) -C src/live $(MFLAGS)
 
 clean:
 	$(MAKE) clean -C src/pySpan
@@ -25,3 +27,4 @@ clean:
 	$(MAKE) clean -C src/rectify
 	$(MAKE) clean -C src/pybin
 	$(MAKE) clean -C src/syncTime
+	$(MAKE) clean -C src/live

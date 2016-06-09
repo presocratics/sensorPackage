@@ -34,8 +34,8 @@ awk -F, 'function euler2qbw(roll,pitch,yaw,q) {
          200*720*2^-31*13,
          -200*720*2^-31*$11)}
          # Process RAWIMUS for calibration
-         /^40,325/ {printf("%f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f\n", 
-         gps2gpssec($5,$6),
+         /^40,325/ {printf("%d,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f\n", 
+         int(1e9*gps2gpssec($5,$6)),
          -200*720*2^-31*$12,
          200*720*2^-31*13,
          -200*720*2^-31*$11,

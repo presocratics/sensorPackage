@@ -96,7 +96,6 @@ def main():
         fno,ctime= getNextCam(cam,coff)
         gpssec = getValidGPS(gps,prevgps)
         if gpssec==-1 or fno==-1: # end of file reached
-            print(gpssec,fno)
             closeAndExit(gps,cam)
         if coff==0:
             coff+=calcCamTimeOffset(ctime,gpssec)
@@ -108,7 +107,7 @@ def main():
             fno,ctime= getNextCam(cam,coff)
             diff=gpssec-ctime
 
-        print("%0.3f,IMG,%010d" % (gpssec,fno))
+        print("%0.9f,IMG,%010d" % (gpssec,fno))
         prevfno=fno
         prevgps=gpssec
         iter+=1

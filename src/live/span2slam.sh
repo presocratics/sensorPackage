@@ -8,7 +8,7 @@
 rm -f /tmp/mark2time.ff
 mkfifo /tmp/mark2time.ff
 
-syncTime.py /tmp/mark2time.ff <(cut -d, -f2,3 $1) > img.txt &
+syncTime /tmp/mark2time.ff <(cut -d, -f2,3 $1) > img.txt &
 
 awk -F, 'function euler2qbw(roll,pitch,yaw,q) {
              q[0] = cos(roll/2)*cos(pitch/2)*cos(yaw/2)+sin(roll/2)*sin(pitch/2)*sin(yaw/2)

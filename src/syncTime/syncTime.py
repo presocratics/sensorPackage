@@ -50,26 +50,22 @@ def getValidGPS(gps,prevgps):
         try:
             line=gps.readline()
             line=line.strip()
-            wk,sec = line.split(',')
+            gpssec=float(line)
         except ValueError:
             return -1
-        wk = int(wk)
-        sec = float(sec)
-        utc = gpsToUTC(wk,sec)
-        if prevgps is None or not isGlitch(utc,prevgps):
-            return utc
+        if prevgps is None or not isGlitch(gpssec,prevgps):
+            return gpssec
 
 def getNextCam(cam,coff):
     try:
         line=cam.readline()
         line=line.strip()
-        fno,camtime,pctime = line.split(',')
+        fno,camtime = line.split(',')
     except ValueError:
         return -1,-1,-1
     fno = int(fno)
     camtime = int(camtime)
-    pctime = float(pctime)
-    return fno,10**-7*camtime+coff,pctime
+    return fno,10**-7*camtime+coff
 
 def calcCamTimeOffset(camtime,utc):
     """Returns the offset in seconds between camtime and utc"""
@@ -83,9 +79,9 @@ def closeAndExit(fn1,fn2):
 def main():
     parser = argparse.ArgumentParser(description="Synchronize gps and camera timestamps")
     parser.add_argument('-o', type=float, default=0, help='Set initial offset between gps and camera')
-    parser.add_argument('gps', help='File containing gps times in GPSWK,SECONDS format')
+    parser.add_argument('gps', help='File containing gps times in SECONDS format')
     parser.add_argument('cam', help="""File containing cam times in
-                        FRAMENO,CAMTIME,PCTIME(UTC) format""")
+                        FRAMENO,CAMTIME[ns] format""")
     args=parser.parse_args()
 
     gps = open(args.gps, 'r')
@@ -97,23 +93,24 @@ def main():
     coff=0
     iter=0
     while True:
-        fno,ctime,pctime = getNextCam(cam,coff)
-        gpsutc = getValidGPS(gps,prevgps)
-        if gpsutc==-1 or fno==-1: # end of file reached
+        fno,ctime= getNextCam(cam,coff)
+        gpssec = getValidGPS(gps,prevgps)
+        if gpssec==-1 or fno==-1: # end of file reached
+            print(gpssec,fno)
             closeAndExit(gps,cam)
         if coff==0:
-            coff+=calcCamTimeOffset(ctime,gpsutc)
-        diff=gpsutc-ctime
+            coff+=calcCamTimeOffset(ctime,gpssec)
+        diff=gpssec-ctime
         while diff<-0.03:
-            gpsutc = getValidGPS(gps,prevgps)
-            diff=gpsutc-ctime
+            gpssec = getValidGPS(gps,prevgps)
+            diff=gpssec-ctime
         while diff>0.03:
-            fno,ctime,pctime = getNextCam(cam,coff)
-            diff=gpsutc-ctime
+            fno,ctime= getNextCam(cam,coff)
+            diff=gpssec-ctime
 
-        print("%0.3f,IMG,%010d" % (gpsutc,fno))
+        print("%0.3f,IMG,%010d" % (gpssec,fno))
         prevfno=fno
-        prevgps=gpsutc
+        prevgps=gpssec
         iter+=1
 
     closeAndExit(gps,cam)

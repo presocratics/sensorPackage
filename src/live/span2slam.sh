@@ -9,7 +9,7 @@ rm -f /tmp/mark2time.ff
 mkfifo /tmp/mark2time.ff
 
 syncTime /tmp/mark2time.ff <(tail -n+1 -f $1 | cut -d, -f2,3 ) | tee img.txt | awk -F, \
-'{printf("%d,%d\n", $3, int(10^9*$1))}' > clib.txt &
+'{printf("%s,%d\n", $3, int(10^9*$1))}' > clib.txt &
 
 awk -F, 'function euler2qbw(roll,pitch,yaw,q) {
              q[0] = cos(roll/2)*cos(pitch/2)*cos(yaw/2)+sin(roll/2)*sin(pitch/2)*sin(yaw/2)

@@ -129,10 +129,10 @@ def logACC(ser, rate, binary=False):
 
 def logRawimu(ser, rate, binary=False):
     """Logs RAWIMU"""
-    type="A"
     if binary is True:
-        type="B"
-    msg="LOG usb1 RAWIMUS%c ontime %f" % (type,rate)
+        msg="LOG usb1 RAWIMUSB onnew "
+    else:
+        msg="LOG usb1 RAWIMUSB onnew"
     if sendCommand(ser, msg) is False:
         exit("%s Failed." % (msg))
     return

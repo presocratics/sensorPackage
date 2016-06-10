@@ -1,4 +1,4 @@
-all: span grabframe rmglitch proccam debayer rectify pybin syncTime
+all: span grabframe rmglitch proccam debayer rectify pybin syncTime span2slam
 span:
 	$(MAKE) -C src/pySpan $(MFLAGS)
 grabframe:

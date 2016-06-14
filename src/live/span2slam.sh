@@ -11,7 +11,7 @@ mkfifo /tmp/mark2time.ff
 syncTime /tmp/mark2time.ff <(tail -n+1 -f $1 | cut -d, -f2,3 ) | tee img.txt | awk -F, \
 '{printf("%s,%d\n", $3, int(10^9*$1))}' > clib.txt &
 
-awk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
+gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
              rd = roll*0.017453292519943295
              pd = pitch*0.017453292519943295
              yd = yaw*0.017453292519943295

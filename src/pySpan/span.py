@@ -83,7 +83,15 @@ def unlogall(ser):
         time.sleep(1)
         if isOK(ser) is True:
             break
-    print("Unlogall ran successfully")
+    print("Unlogall ran successfully.")
+    time.sleep(1)
+
+    while 1:
+        print("Turning off mark events.")
+        if sendCommand(ser, "eventoutcontrol mark1 disable") is True:
+            break
+        time.sleep(1)
+    print("Eventoutcontrol ran successfully.")
     return
 
 def logINSPVAS(ser, rate, binary=False):
@@ -179,11 +187,15 @@ def main():
                       help="Collect rawimu.", default=False)
     parser.add_option("--no-pva", dest="pva", action="store_false",
                       help="Do not collect pva. Implies -r.", default=True)
+    parser.add_option("--unlog", action="store_true", default=False,
+                      help="Turns off logs and mark events and exits.")
 
     (options, args)=parser.parse_args()
     ser=connectToGPS(options.device)
     signal.signal(signal.SIGINT, signal_handler)
     unlogall(ser)
+    if options.unlog is True:
+        exit()
     if options.doImage is True:
         logImages(ser, options.fps, options.binary)
     if options.pva is True:

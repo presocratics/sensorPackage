@@ -62,8 +62,8 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
          }
 
          # Process BESTUTM
-         /^726/ {printf("%f,UTM,%0.9f,%0.9f,%d,%c\n", gps2gpssec($8,$9*1e-3),
-         $15,$16) > fout}
+         /^726/ {printf("%f,UTM,%0.9f,%0.9f,%0.9f,%d,%c\n", gps2gpssec($8,$9*1e-3),
+         $17,$18,-1*$19,$15,$16) > fout}
 
          # Process CORRIMUDATAS
          /^60,813/ {printf("%f,ACC,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),

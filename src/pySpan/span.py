@@ -52,6 +52,7 @@ def waitForINS(ser):
             if "INSPVASA" in msg:
                 break
         if "INS_SOLUTION_GOOD" in msg:
+            print("Good solution obtained.")
             break
         status=msg.split(",")[13]
         print status
@@ -196,16 +197,16 @@ def main():
     unlogall(ser)
     if options.unlog is True:
         exit()
-    if options.doImage is True:
-        logImages(ser, options.fps, options.binary)
     if options.pva is True:
         waitForFix(ser)
     if options.initAtt is True:
         setInitAttitude(ser)
     if options.pva is True:
         waitForINS(ser)
-        logINSPVAS(ser, .1, options.binary)  # 10Hz
         logBestUTM(ser, 5, options.binary) # .2 Hz
+        logINSPVAS(ser, .1, options.binary)  # 10Hz
+    if options.doImage is True:
+        logImages(ser, options.fps, options.binary)
     if options.binary is True:
         imurate=0.01
     else:

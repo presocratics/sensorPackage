@@ -25,6 +25,7 @@ def getStart(ser):
     return isShort
 
 def readHeader(ser,isShort=False):
+    NoResponseID=[101,263,264,268,507,616,812,1068,1461]
     """Reads the header of the message"""
     if isShort:
         format='=BHHL'
@@ -32,13 +33,22 @@ def readHeader(ser,isShort=False):
         fields=['Message_Length','Message_ID','Week_Number','Milliseconds']
     else:
         header_length=ser.read(1)
-        num_to_read=ord(header_length)
-        format='=HbBHHBcHLLHHL'
-        header_data=ser.read(num_to_read)
+        msg_id_data=struct.unpack('=H',ser.read(2))
         fields=['Message_ID','Message_Type','Port_Address','Message_Length',
                 'Sequence','Idle_Time','Time_Status','Week','ms','Receiver_Status',
-                'Reserved','Receiver_SW_Version','Response_ID']
+                'Reserved','Receiver_SW_Version']
+
+        if msg_id_data[0] in NoResponseID:
+            num_to_read=ord(header_length)-6
+            format='=cBHHBcHLLHH'
+        else:
+            num_to_read=ord(header_length)-2
+            format='=cBHHBcHLLHHL'
+            fields.append('Response_ID')
+        header_data=ser.read(num_to_read)
     header_data=struct.unpack(format,header_data)
+    if not isShort:
+        header_data=msg_id_data+header_data
     tuple=namedtuple('header',fields)
 
     return tuple._make(header_data)
@@ -201,7 +211,6 @@ def main():
     while True:
         isShort=getStart(ser)
         header=readHeader(ser,isShort)
-
         msg_name=message_ids[header.Message_ID]
         format=message_fmts[msg_name]
         message_data=read_message(ser,header.Message_Length,format)

@@ -25,7 +25,7 @@ def getStart(ser):
     return isShort
 
 def readHeader(ser,isShort=False):
-    NoResponseID=[101,263,264,268,507,616,812,1068,1461]
+    NoResponseID=[101,263,264,268,507,616,726,812,1068,1461]
     """Reads the header of the message"""
     if isShort:
         format='=BHHL'

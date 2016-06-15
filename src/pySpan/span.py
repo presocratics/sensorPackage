@@ -137,6 +137,16 @@ def logRawimu(ser, rate, binary=False):
         exit("%s Failed." % (msg))
     return
 
+def logBestUTM(ser, rate, binary=False):
+    """Logs BESTUTM"""
+    type="a"
+    if binary is True:
+        type="b"
+    msg="log usb1 bestutm%c ontime %f" % (type,rate)
+    if sendCommand(ser,msg) is False:
+        exit("%s Failed." % (msg))
+    return
+
 def sendCommand(ser, msg):
     """Sends a command and verifies it is received correctly"""
     ser.write("%s\r\n" % (msg))
@@ -183,6 +193,7 @@ def main():
     if options.pva is True:
         waitForINS(ser)
         logINSPVAS(ser, .1, options.binary)  # 10Hz
+        logBestUTM(ser, 5, options.binary) # .2 Hz
     if options.binary is True:
         imurate=0.01
     else:

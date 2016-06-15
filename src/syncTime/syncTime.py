@@ -108,7 +108,7 @@ def main():
             fno,ctime= getNextCam(cam,coff)
             diff=gpssec-ctime
 
-        print("%0.9f,IMG,%010d" % (ctime,fno))
+        print("%0.9f,IMG,%010d" % (gpssec,fno))
         prevfno=fno
         prevgps=gpssec
         iter+=1

@@ -61,13 +61,18 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
             gps2gpssec($5,$6),q[0],q[1],q[2],q[3]) > fout
          }
 
+         # Process BESTUTM
+         /^726/ {printf("%f,UTM,%0.9f,%0.9f,%d,%c\n", gps2gpssec($8,$9*1e-3),
+         $15,$16) > fout}
+
          # Process CORRIMUDATAS
          /^60,813/ {printf("%f,ACC,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
          200*$11,200*$10,-200*$12) > fout}
          /^60,813/ {printf("%f,ANG,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
-         200*$8,200*$7,-200*$9) > fout}
+
 
          # Process MARK2TIME
-         /^616/ {print gps2gpssec($8,$9*1e-3) > "/tmp/mark2time.ff" }' 
+         /^616/ {print gps2gpssec($13,$14) > "/tmp/mark2time.ff" }' 
+
 
 rm -f /tmp/mark2time.ff

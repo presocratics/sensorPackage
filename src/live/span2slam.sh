@@ -69,6 +69,7 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
          /^60,813/ {printf("%f,ACC,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
          200*$11,200*$10,-200*$12) > fout}
          /^60,813/ {printf("%f,ANG,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
+         200*$8,200*$7,-200*$9) > fout}
 
 
          # Process MARK2TIME

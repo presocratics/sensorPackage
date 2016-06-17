@@ -56,7 +56,7 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
          /^88,508/ {printf("%f,VEL,%0.9f,%0.9f,%0.9f\n",
          gps2gpssec($5,$6),$10,$11,-$12) > fout}
          /^88,508/ {
-            euler2qbw($13,$14,$15,q);
+            euler2qbw($14,$13,$15,q);
             printf("%f,QUAT,%0.9f,%0.9f,%0.9f,%0.9f\n",
             gps2gpssec($5,$6),q[0],q[1],q[2],q[3]) > fout
          }

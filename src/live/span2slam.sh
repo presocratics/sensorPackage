@@ -16,9 +16,9 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
              pd = pitch*0.017453292519943295
              yd = yaw*0.017453292519943295
              q[0] = cos(rd/2)*cos(pd/2)*cos(yd/2)+sin(rd/2)*sin(pd/2)*sin(yd/2)
-             q[1] = cos(rd/2)*sin(pd/2)*cos(yd/2)+sin(rd/2)*cos(pd/2)*sin(yd/2)
-             q[2] = cos(rd/2)*cos(pd/2)*sin(yd/2)-sin(rd/2)*sin(pd/2)*cos(yd/2)
-             q[3] = sin(rd/2)*cos(pd/2)*cos(yd/2)-cos(rd/2)*sin(pd/2)*sin(yd/2)
+             q[1] = sin(rd/2)*cos(pd/2)*cos(yd/2)-cos(rd/2)*sin(pd/2)*sin(yd/2)
+             q[2] = cos(rd/2)*sin(pd/2)*cos(yd/2)+sin(rd/2)*cos(pd/2)*sin(yd/2)
+             q[3] = cos(rd/2)*cos(pd/2)*sin(yd/2)-sin(rd/2)*sin(pd/2)*cos(yd/2)
          }
 
          function gps2gpssec(wk,sec,        gpssec) {

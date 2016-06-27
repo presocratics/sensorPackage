@@ -26,6 +26,7 @@
 // These are made global so that we can access them after SIGINT.
 HIDS *camera; 
 char **dirs; 
+int64_t *offset;
 int num_cams;
 #ifndef __linux
 HANDLE frameEvent[2];
@@ -55,6 +56,8 @@ signal_callback_handler ( int signum )
     }
     free(dirs);
     free(camera);
+    free (offset);
+    offset	= NULL;
     camera=NULL;
     dirs	= NULL;
     exit( signum );
@@ -91,7 +94,7 @@ initCam ( int cam_num )
     int rv;
     char* frameMemory[SEQSIZE];
     int memoryID[SEQSIZE];
-    unsigned int desiredPixelClock=64;
+    unsigned int desiredPixelClock=32;
     cam = (HIDS) cam_num;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {
@@ -202,10 +205,10 @@ initCam ( int cam_num )
  * ===  FUNCTION  ======================================================================
  *         Name:  getImage
  *  Description:  Gets the next image from cam, saves it, and prints its info to
- *  STDOUT.
+ *  STDOUT. Returns the camera time.
  * =====================================================================================
  */
-    void
+    uint64_t
 getImage ( HIDS cam, char *dir, int show )
 {
     wchar_t buffer[100];
@@ -228,7 +231,7 @@ getImage ( HIDS cam, char *dir, int show )
 
     // Manage memory for the next frame.
     timedout=0;
-    if( (rv=is_WaitForNextImage(cam, (debug_mode) ? INFINITE : 2000, &currentFrame, &frameId))!=IS_SUCCESS )
+    if( (rv=is_WaitForNextImage(cam, (debug_mode) ? INFINITE : INFINITE, &currentFrame, &frameId))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "Wait for next image.");
     }
@@ -280,7 +283,7 @@ getImage ( HIDS cam, char *dir, int show )
     u64TimestampDevice = ImageInfo.u64TimestampDevice;  
 
     // Print logging info.
-    printf("%d,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d,%d\n", 
+    printf("%d,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d,%d", 
             cam,
             framenumber,
             u64TimestampDevice,
@@ -321,7 +324,7 @@ getImage ( HIDS cam, char *dir, int show )
 
     if( (rv=is_UnlockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "UnlockSeqBuf.");
-    return;
+    return u64TimestampDevice;
 }		/* -----  end of function getImage  ----- */
 
 /* 
@@ -509,6 +512,15 @@ int main(int argc, char* argv[])
         fprintf ( stderr, "\ndynamic memory allocation failed\n" );
         exit (EXIT_FAILURE);
     }
+    
+    offset	= (int64_t *) calloc ( (size_t)(num_cams-1), sizeof(int64_t) );
+    if ( offset==NULL ) {
+        fprintf ( stderr, "\ndynamic memory allocation failed\n" );
+        exit (EXIT_FAILURE);
+    }
+
+
+
 
 #ifndef __linux
     frameEvent[0]=CreateEvent(NULL,FALSE,FALSE,NULL);
@@ -580,10 +592,33 @@ int main(int argc, char* argv[])
 
 
         ++i;
+        uint64_t prev,cur;
+        int failed=0;
         for( cami=0; cami<num_cams; ++cami )
         {
             int show=(i%10==0) && (cami==0) ? 1 : 0;
-            getImage(camera[cami], dirs[cami], show);
+            cur = getImage(camera[cami], dirs[cami], show);
+
+            // Check offset for all cameras after the first.
+            if (cami>0) 
+            {
+                if (offset[cami-1]==0) { // offset is unset
+                    offset[cami-1]=cur-prev;
+                } else if (abs(offset[cami-1]-(cur-prev))>MAXOFFSET) { 
+                    // The current offset is too far from the initial.
+                    ++failed;
+                }
+            }
+
+            // Handle printing.
+            if (cami<num_cams-1) {
+                printf(",");
+            } else {
+                printf(",%d\n", failed);
+            }
+
+            prev = cur;
+
         }
         if (once) break;
     }
@@ -600,6 +635,8 @@ int main(int argc, char* argv[])
     free (dirs);
     dirs	= NULL;
     exit(0);
+    free (offset);
+    offset	= NULL;
 }				/* ----------  end of function main  ---------- */
 
 

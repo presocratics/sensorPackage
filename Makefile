@@ -1,4 +1,4 @@
-all: span grabframe rmglitch proccam debayer rectify pybin syncTime span2slam
+all: span grabframe rmglitch proccam debayer rectify pybin syncTime span2slam mmerge
 span:
 	$(MAKE) -C src/pySpan $(MFLAGS)
 grabframe:
@@ -17,6 +17,8 @@ syncTime:
 	$(MAKE) -C src/syncTime $(MFLAGS)
 span2slam:
 	$(MAKE) -C src/live $(MFLAGS)
+mmerge:
+	$(MAKE) -C src/mmerge $(MFLAGS)
 
 clean:
 	$(MAKE) clean -C src/pySpan
@@ -28,3 +30,4 @@ clean:
 	$(MAKE) clean -C src/pybin
 	$(MAKE) clean -C src/syncTime
 	$(MAKE) clean -C src/live
+	$(MAKE) clean -C src/mmerge

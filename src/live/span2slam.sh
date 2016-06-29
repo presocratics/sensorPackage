@@ -5,11 +5,6 @@
 # Converts SPAN output to SLAM output.
 # Writes sensors to individual fifos
 # Usage: pybin | tee data.gps | span2slam
-rm -f /tmp/mark2time.ff
-mkfifo /tmp/mark2time.ff
-
-syncTime /tmp/mark2time.ff <(tail -n+1 -f $1 | cut -d, -f2,3 ) | tee img.txt | awk -F, \
-'{printf("%s,%d\n", $3, int(10^9*$1))}' > clib.txt &
 
 gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
              rd = roll*0.017453292519943295
@@ -73,7 +68,6 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
 
 
          # Process MARK2TIME
-         /^616/ {print gps2gpssec($13,$14) > "/tmp/mark2time.ff" }' 
-
-
-rm -f /tmp/mark2time.ff
+         /^616/ {printf("%0.9f,IMG\n", gps2gpssec($13,$14)) > "imgtimes.txt";
+         fflush() }
+         '

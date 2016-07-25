@@ -6,6 +6,7 @@
 import serial
 import struct
 from collections import namedtuple
+import sys
 
 def getStart(ser):
     """Waits reads serial until start bits are detected"""
@@ -197,7 +198,10 @@ def get_defines():
 
 def main():
     message_ids,message_fmts,fields=get_defines()
-    ser=serial.Serial("/dev/ttyUSB0",baudrate=115200)
+    if len(sys.argv)>1:
+        ser=open(sys.argv[1],'rb')
+    else:
+        ser=serial.Serial("/dev/ttyUSB0",baudrate=115200)
     while True:
         isShort=getStart(ser)
         header=readHeader(ser,isShort)

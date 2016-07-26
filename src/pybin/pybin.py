@@ -29,28 +29,28 @@ def getStart(ser):
 def readHeader(ser,isShort=False):
     """Reads the header of the message"""
     if isShort:
-        format='=BHHL'
+        fmt='=BHHL'
         raw_header=ser.read(9)
         fields=['Message_Length','Message_ID','Week_Number','Milliseconds']
     else:
         header_length=ser.read(1)
         num_to_read=ord(header_length)-4
-        format='=HcBHHBcHLLHH'
+        fmt='=HcBHHBcHLLHH'
         raw_header=ser.read(num_to_read)
         fields=['Message_ID','Message_Type','Port_Address','Message_Length',
                 'Sequence','Idle_Time','Time_Status','Week','ms','Receiver_Status',
                 'Reserved','Receiver_SW_Version']
-    header_data=struct.unpack(format,raw_header)
+    header_data=struct.unpack(fmt,raw_header)
     tuple=namedtuple('header',fields)
     if not isShort:
         raw_header=header_length+raw_header
 
     return raw_header,tuple._make(header_data)
 
-def read_message(ser,msg_len,format):
+def read_message(ser,msg_len,fmt):
     """Reads according to format"""
     rawmessage=ser.read(msg_len)
-    message=struct.unpack(format,rawmessage)
+    message=struct.unpack(fmt,rawmessage)
     return rawmessage,message
 
 def read_CRC(ser):
@@ -93,11 +93,11 @@ def main():
         rawstart,isShort=getStart(ser)
         rawhdr,header=readHeader(ser,isShort)
 
-        format=Messages[header.Message_ID]['format']
+        fmt=Messages[header.Message_ID]['format']
         fields=Messages[header.Message_ID]['fields']
         message_name=Messages[header.Message_ID]['message_name']
 
-        rawmsg,message_data=read_message(ser,header.Message_Length,format)
+        rawmsg,message_data=read_message(ser,header.Message_Length,fmt)
         crc=read_CRC(ser)
         if rawstart==b'\x13':
             raw=b'\xaa\x44\x13'

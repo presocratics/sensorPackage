@@ -96,6 +96,7 @@ initCam ( int cam_num )
     int memoryID[SEQSIZE];
     unsigned int desiredPixelClock=32;
     cam = (HIDS) cam_num;
+    IS_RECT rectAOI;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "InitCamera.");
@@ -182,6 +183,16 @@ initCam ( int cam_num )
         exit(EXIT_FAILURE);
     }
 #endif
+    //Setting the auto brightness Area Of Interest (AOI).
+    rectAOI.s32X = 360;
+    rectAOI.s32Y = 270;
+    rectAOI.s32Width = 80;
+    rectAOI.s32Height = 60;
+    if( (rv=is_AOI(cam,IS_AOI_AUTO_BRIGHTNESS_SET_AOI, (void*)&rectAOI, sizeof(rectAOI)))!= IS_SUCCESS ) {
+        err_ueye(cam, rv, "Set AOI Auto Brightness.");
+        exit(EXIT_FAILURE);
+    }
+
     // Begin transmission
     if( (rv=is_CaptureVideo(cam, IS_DONT_WAIT))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "CaptureVideo.");

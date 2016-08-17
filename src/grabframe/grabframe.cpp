@@ -94,7 +94,7 @@ initCam ( int cam_num )
     int rv;
     char* frameMemory[SEQSIZE];
     int memoryID[SEQSIZE];
-    unsigned int desiredPixelClock=32;
+    unsigned int desiredPixelClock=64;
     cam = (HIDS) cam_num;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {

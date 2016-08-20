@@ -24,7 +24,7 @@
 #define LOG_EVENT_IN "LOG MARK2TIMEA ONNEW\r\n"            /*  */
 #define ENABLE_TRIGGER "EVENTOUTCONTROL MARK1 ENABLE POSITIVE 10000000 10000000\r\n"            /*  */
 
-#define SEQSIZE 64            /*  */
+#define SEQSIZE 128            /*  */
 #define MAXMSG 1024            /*  */
 #define CRC32_POLYNOMIAL 0xEDB88320L
 

@@ -75,7 +75,7 @@ err_ueye ( HIDS cam, int result, char *msg )
 {
     char *str;
     is_GetError( cam, &result, &str );
-    fprintf( stderr, "%s ueye error %d: %s\n", msg, result, str );
+    fprintf( stderr, "cam %d: %s ueye error %d: %s\n", cam, msg, result, str );
     return;
 }		/* -----  end of function err_ueye  ----- */
 
@@ -156,7 +156,7 @@ initCam ( int cam_num )
         exit(EXIT_FAILURE);
     }
     // Set exposure to 30ms. This will allow us to easily shoot at 25Hz.
-    double exptime=7.;
+    double exptime=3.;
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*)&exptime,
                     sizeof(exptime)))!=IS_SUCCESS )
     {
@@ -559,6 +559,7 @@ int main(int argc, char* argv[])
         if (debug_mode==0) _mkdir(dirs[cami]);
 #endif
     }
+    printf("Cameras are ready\n");
 
     int i=0;
     while(1)

@@ -1,0 +1,36 @@
+# message.yaml
+# Do not use tabs for formatting, only spaces.
+64:
+    message_name: geolocation
+    format: '>BBiihHB'
+    length: 15
+    fields: ['status','sequence_number','target_latitude','target_longitude',
+        'target_altitude','lrf_range','geo']
+
+65:
+    message_name: moving_map_gimbal
+    format: '>BHhh'
+    length: 7
+    fields: ['status', 'fov', 'az_angle', 'el_angle']
+
+66:
+    message_name: boresight
+    format: '>BBiihHB'
+    length: 15
+    fields: ['status', 'sequence_number', 'boresight_latitude', 'boresight_longitude', 'boresight_altitude',
+        'estimated_range', 'geo']
+
+91:
+    message_name: insnav
+    format: '>BLllhhhhhhhhhhB'
+    length: 34
+    fields: ['validity', 'gpstime', 'latitude', 'longitude', 'altitude',
+        'velocity_east', 'velocity_north', 'velocity_up', 'accel_rt',
+        'accel_nose', 'accel_up', 'pitch', 'roll', 'heading', 'status']
+
+92:
+    message_name: insacc
+    format: '>BLHHHHHBB'
+    length: 17
+    fields: ['validity', 'gpstime', 'estHorizErr', 'estVertErr', 'estVelErr',
+        'estHdgErr', 'estTiltErr', 'PosVelFom', 'AttHdgFom']

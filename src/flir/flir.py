@@ -89,7 +89,6 @@ def main():
             continue
         fields=Messages[header.Key]['fields']
         message_name=Messages[header.Key]['message_name']
-        print(message_name)
 
         message_data=read_message(ser,header.Length,fmt)
 

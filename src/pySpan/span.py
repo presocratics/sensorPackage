@@ -125,6 +125,15 @@ def logImages(ser, fps, binary=False):
     if sendCommand(ser, msg) is False:
         exit("message failed: %s" % (msg))
 
+def logCov(ser, rate, binary=False):
+    """Logs covariances"""
+    type="A"
+    if binary is True:
+        type="B"
+    msg="LOG usb1 INSCOVS%c ontime %f" % (type,rate)
+    if sendCommand(ser,msg) is False:
+        exit("%s Failed." % (msg))
+    return
 
 def logACC(ser, rate, binary=False):
     """Turns on acceleration logging"""
@@ -202,7 +211,7 @@ def main():
     if options.initAtt is True:
         setInitAttitude(ser)
     if options.pva is True:
-        waitForINS(ser)
+        #waitForINS(ser)
         logBestUTM(ser, 5, options.binary) # .2 Hz
         logINSPVAS(ser, .1, options.binary)  # 10Hz
     if options.doImage is True:
@@ -215,6 +224,7 @@ def main():
         logRawimu(ser, imurate, options.binary)
     else:
         logACC(ser, imurate, options.binary) # 50Hz
+    logCov(ser,1,options.binary) # 1Hz
     logStatus(ser, 10, options.binary) # .1Hz
     print "Logging has begun."
     ser.close()

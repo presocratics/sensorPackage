@@ -6,7 +6,7 @@
 # Writes sensors to individual fifos
 # Usage: pybin | tee data.gps | span2slam
 
-gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
+gawk -F, -v fname=$1 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
              rd = roll*0.017453292519943295
              pd = pitch*0.017453292519943295
              yd = yaw*0.017453292519943295
@@ -22,7 +22,7 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
          }
 
          BEGIN  { OFS=","
-                  fout=strftime("%d%m%Y-%T",systime()) ".gps"
+                  fout=fname
          }
          # Process RAWIMUS 
          /^40,325/ {printf("%f,ACC,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
@@ -66,6 +66,13 @@ gawk -F, 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
          /^60,813/ {printf("%f,ANG,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
          200*$8,200*$7,-200*$9) > fout}
 
+         # Process inscovs
+         /^228,320,/ {printf("%f,COVP,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f\n",
+             gps2gpssec($5,$6),$7,$8,$9,$10,$11,$12,$13,$14,$15) > fout }
+         /^228,320,/ {printf("%f,COVV,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f\n",
+             gps2gpssec($5,$6),$16,$17,$18,$19,$20,$21,$22,$23,$24) > fout }
+         /^228,320,/ {printf("%f,COVA,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f\n",
+             gps2gpssec($5,$6),$25,$26,$27,$28,$29,$30,$31,$32,$33) > fout }
 
          # Process MARK2TIME
          /^616/ {printf("%0.9f,IMG\n", gps2gpssec($13,$14)) > "imgtimes.txt";

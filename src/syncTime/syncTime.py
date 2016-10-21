@@ -60,12 +60,12 @@ def getNextCam(cam,coff):
     try:
         line=cam.readline()
         line=line.strip()
-        fno,camtime = line.split(',')
+        fno,camtime = line.rsplit(',', 1)
     except ValueError:
-        return -1,-1,-1
-    fno = int(fno)
+        return -1,-1
     camtime = int(camtime)
-    return fno,10**-7*camtime+coff
+    fnos = fno.split(",")
+    return fnos,10**-7*camtime+coff
 
 def calcCamTimeOffset(camtime,utc):
     """Returns the offset in seconds between camtime and utc"""
@@ -81,7 +81,7 @@ def main():
     parser.add_argument('-o', type=float, default=0, help='Set initial offset between gps and camera')
     parser.add_argument('gps', help='File containing gps times in SECONDS format')
     parser.add_argument('cam', help="""File containing cam times in
-                        FRAMENO,CAMTIME[ns] format""")
+                        FRAMENO...,CAMTIME[ns] format""")
     args=parser.parse_args()
 
     gps = open(args.gps, 'r')
@@ -108,7 +108,10 @@ def main():
             fno,ctime= getNextCam(cam,coff)
             diff=gpssec-ctime
 
-        print("%0.9f,IMG,%010d" % (gpssec,fno))
+        fnostr=[]
+        for f in fno:
+            fnostr.append("%010d" % (int(f)))
+        print("%0.9f,IMG,%s" % (gpssec,",".join(fnostr)))
         prevfno=fno
         prevgps=gpssec
         iter+=1

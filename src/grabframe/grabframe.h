@@ -24,13 +24,15 @@
 #define LOG_EVENT_IN "LOG MARK2TIMEA ONNEW\r\n"            /*  */
 #define ENABLE_TRIGGER "EVENTOUTCONTROL MARK1 ENABLE POSITIVE 10000000 10000000\r\n"            /*  */
 
-#define SEQSIZE 64            /*  */
+#define SEQSIZE 128            /*  */
 #define MAXMSG 1024            /*  */
 #define CRC32_POLYNOMIAL 0xEDB88320L
 
+#define MAXOFFSET 5000
+
 void err_ueye ( HIDS cam, int result, char *msg );
 HIDS initCam ( int cam_num );
-void getImage ( HIDS cam, char *dir, int show);
+uint64_t getImage ( HIDS cam, char *dir, int show);
 void autoGain ( HIDS cam );
 void incrShutter ( HIDS cam, double delta );
 #endif   /* ----- #ifndef grabframe_INC  ----- */

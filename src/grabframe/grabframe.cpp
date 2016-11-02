@@ -464,6 +464,8 @@ int main(int argc, char* argv[])
     strncpy(camname,argv[argc-1],99);
     strncpy(dirname,argv[argc-2],99);
 
+    camera	= initCam(0);
+    
     sprintf(parentdir, "%s/%s", pparent, dirname);
 
     if( debug_mode==0 && mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
@@ -473,7 +475,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    camera	= initCam(0);
     // Prepare directories to store images
     sprintf(dir, "%s/%s", parentdir, camname);
     if( debug_mode==0 && mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {

@@ -28,9 +28,6 @@ HIDS *camera;
 char **dirs; 
 int64_t *offset;
 int num_cams;
-#ifndef __linux
-HANDLE frameEvent[2];
-#endif
 int debug_mode = 0;
 
 /* 
@@ -198,12 +195,6 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "CaptureVideo.");
         exit(EXIT_FAILURE);
     }
-#ifndef __linux // Using Windows
-    if( (rv=is_InitEvent(cam, frameEvent[cam-1], IS_SET_EVENT_FRAME))!=IS_SUCCESS ) {
-        err_ueye(cam, rv, "Init event (Win).");
-        exit(EXIT_FAILURE);
-    }
-#endif
     if( (rv=is_EnableEvent(cam, IS_SET_EVENT_FRAME))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "Set event frame.");
         exit(EXIT_FAILURE);

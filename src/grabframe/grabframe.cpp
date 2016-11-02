@@ -24,10 +24,7 @@
 #include "grabframe.h"
 #define BINNING /* if defined, use binning. comment out to turn off */
 // These are made global so that we can access them after SIGINT.
-HIDS *camera; 
-char **dirs; 
-int64_t *offset;
-int num_cams;
+HIDS camera; 
 int debug_mode = 0;
 
 /* 
@@ -40,23 +37,12 @@ int debug_mode = 0;
 signal_callback_handler ( int signum )
 {
     printf("Caught signal %d\n", signum);
-    int i;
-    for( i=0; i<num_cams; ++i )
-    {
-        int rv;
-        printf("Closing cam %d of %d (%d)\n", i+1, num_cams, camera[i]);
-        if( (rv=is_ExitCamera(camera[i]))!=IS_SUCCESS )
-            err_ueye(camera[i], rv, "Exit camera.");
-        free (dirs[i]);
-        if( (rv=is_DisableEvent(camera[i], IS_SET_EVENT_FRAME))!=IS_SUCCESS)
-            err_ueye(camera[i], rv, "Disable event.");
-    }
-    free(dirs);
-    free(camera);
-    free (offset);
-    offset	= NULL;
-    camera=NULL;
-    dirs	= NULL;
+    int rv;
+    printf("Closing camera.\n");
+    if( (rv=is_ExitCamera(camera))!=IS_SUCCESS )
+        err_ueye(camera, rv, "Exit camera.");
+    if( (rv=is_DisableEvent(camera, IS_SET_EVENT_FRAME))!=IS_SUCCESS)
+        err_ueye(camera, rv, "Disable event.");
     exit( signum );
 }		/* -----  end of function signal_callback_handler  ----- */
 
@@ -285,7 +271,7 @@ getImage ( HIDS cam, char *dir, int show )
     u64TimestampDevice = ImageInfo.u64TimestampDevice;  
 
     // Print logging info.
-    printf("%d,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d,%d", 
+    printf("%d,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d,%d\n", 
             cam,
             framenumber,
             u64TimestampDevice,
@@ -436,7 +422,8 @@ autoGain ( HIDS cam )
  */
 int main(int argc, char* argv[])
 {
-    // in debug mode, not images are written
+    // in debug mode, no images are written
+    char dir[100];
     char pparent[100];
     char parentdir[100];
     char timestr[200];
@@ -471,14 +458,10 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-#ifdef __linux
     if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 ) {
         err_sys("strftime");
         exit(EXIT_FAILURE);
     }
-#else
-    strftime(timestr, sizeof(timestr), "%Y-%m-%d-%H%M%S", tmp);
-#endif
     if(argc==2 && debug_mode==0) // Parent dir is set
     {
         sprintf(pparent, "%s/images", argv[1]);
@@ -488,69 +471,14 @@ int main(int argc, char* argv[])
         sprintf(pparent, "./images");
     }
     sprintf(parentdir, "%s/%s", pparent, timestr);
-#ifdef __linux
     if( debug_mode==0 && mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
         err_sys("mkdir %s", parentdir);
         exit(EXIT_FAILURE);
     }
-#else
-    if (debug_mode==0) _mkdir(parentdir);
-#endif
 
-    if( is_GetNumberOfCameras(&num_cams)!=IS_SUCCESS )
-    {
-        fprintf(stderr, "Error retrieving number of cameras.\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    camera	= (HIDS *) calloc ( (size_t)(num_cams), sizeof(HIDS) );
-    if ( camera==NULL ) {
-        fprintf ( stderr, "\ndynamic memory allocation failed\n" );
-        exit (EXIT_FAILURE);
-    }
-    
-    dirs	= (char **) calloc ( (size_t)(num_cams), sizeof(char*) );
-    if ( dirs==NULL ) {
-        fprintf ( stderr, "\ndynamic memory allocation failed\n" );
-        exit (EXIT_FAILURE);
-    }
-    
-    offset	= (int64_t *) calloc ( (size_t)(num_cams-1), sizeof(int64_t) );
-    if ( offset==NULL ) {
-        fprintf ( stderr, "\ndynamic memory allocation failed\n" );
-        exit (EXIT_FAILURE);
-    }
-
-
-
-
-#ifndef __linux
-    frameEvent[0]=CreateEvent(NULL,FALSE,FALSE,NULL);
-    frameEvent[1]=CreateEvent(NULL,FALSE,FALSE,NULL);
-#endif
-
-    int cami;
-    for( cami=0; cami<num_cams; ++cami ) 
-    {
-        camera[cami]=initCam(0);
-        // Prepare directories to store images
-        
-        dirs[cami]	= (char *)calloc ( (size_t)(100), sizeof(char) );
-        if ( dirs[cami]==NULL ) {
-            fprintf ( stderr, "\ndynamic memory allocation failed\n" );
-            exit (EXIT_FAILURE);
-        }
-        sprintf(dirs[cami], "%s/cam%d", parentdir, cami);
-#ifdef __linux
-        if( debug_mode==0 && mkdir(dirs[cami], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
-            err_sys("mkdir %s", dirs[cami]);
-            exit(EXIT_FAILURE);
-        }
-#else
-        if (debug_mode==0) _mkdir(dirs[cami]);
-#endif
-    }
-    fprintf(stderr,"Cameras are ready\n");
+    camera	= initCam(0);
+    // Prepare directories to store images
+    sprintf(dir, "%s/cam0", parentdir);
 
     int i=0;
     while(1)
@@ -565,27 +493,27 @@ int main(int argc, char* argv[])
                 break;
 
             case 'j':	// Decrease gain.
-                for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], -2);
+                incrGain(camera, -2);
                 break;
 
             case 'k':	// Increase gain.
-                for( cami=0; cami<num_cams; ++cami ) incrGain(camera[cami], +1);
+                incrGain(camera,+1);
                 break;
 
             case 'h':	// Decrease exposure time.
-                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], -0.25);
+                incrShutter(camera,-0.25);
                 break;
 
             case 'l':	// Increase exposure time.
-                for( cami=0; cami<num_cams; ++cami ) incrShutter(camera[cami], 0.25);
+                incrShutter(camera,+0.25);
                 break;
 
             case 'b':	// Toggle gain boost.
-                for( cami=0; cami<num_cams; ++cami ) toggleGainBoost(camera[cami]);
+                toggleGainBoost(camera);
                 break;
 
             case 'a':	// Turn auto gain.
-                for( cami=0; cami<num_cams; ++cami ) autoGain(camera[cami]);
+                autoGain(camera);
                 break;
 
             default:	
@@ -595,51 +523,14 @@ int main(int argc, char* argv[])
 
 
         ++i;
-        uint64_t prev,cur;
-        int failed=0;
-        for( cami=0; cami<num_cams; ++cami )
-        {
-            int show=(i%10==0) && (cami==0) ? 1 : 0;
-            cur = getImage(camera[cami], dirs[cami], show);
-
-            // Check offset for all cameras after the first.
-            if (cami>0) 
-            {
-                if (offset[cami-1]==0) { // offset is unset
-                    offset[cami-1]=cur-prev;
-                } else if (abs(offset[cami-1]-(cur-prev))>MAXOFFSET) { 
-                    // The current offset is too far from the initial.
-                    ++failed;
-                }
-            }
-
-            // Handle printing.
-            if (cami<num_cams-1) {
-                printf(",");
-            } else {
-                printf(",%d\n", failed);
-            }
-
-            prev = cur;
-
-        }
+        int show=(i%10==0);
+        getImage(camera, dir, show);
         if (once) break;
     }
-    for( cami=0; cami<num_cams; ++cami ) 
-    {
-        int rv;
-        if( (rv=is_ExitCamera(camera[cami]))!=IS_SUCCESS )
-            err_ueye(camera[cami], rv, "Exit camera.");
-        free (dirs[cami]);
-    }
-
-    free (camera);
-    camera	= NULL;
-    free (dirs);
-    dirs	= NULL;
+    int rv;
+    if( (rv=is_ExitCamera(camera))!=IS_SUCCESS )
+        err_ueye(camera, rv, "Exit camera.");
     exit(0);
-    free (offset);
-    offset	= NULL;
 }				/* ----------  end of function main  ---------- */
 
 

@@ -559,7 +559,7 @@ int main(int argc, char* argv[])
         if (debug_mode==0) _mkdir(dirs[cami]);
 #endif
     }
-    printf("Cameras are ready\n");
+    fprintf(stderr,"Cameras are ready\n");
 
     int i=0;
     while(1)

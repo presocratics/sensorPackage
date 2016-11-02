@@ -415,6 +415,21 @@ autoGain ( HIDS cam )
 }		/* -----  end of function autoGain  ----- */
 
 /*
+ * help()
+ * Prints usages.
+ */
+    void
+help(char *ex)
+{
+    printf("Usage: %s [-d] [-1] dirname camname\n\n", ex);
+    printf("dirname Directory to store camera name.\n \
+            camname Directory to store images.\n\n \
+            Options:\n\
+             -d     debug mode. No images saved.\n \
+             -1     one time mode. -d plus only grab one frame.\n");
+}
+
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  main
  *  Description:  
@@ -423,62 +438,48 @@ autoGain ( HIDS cam )
 int main(int argc, char* argv[])
 {
     // in debug mode, no images are written
-    char dir[100];
-    char pparent[100];
-    char parentdir[100];
-    char timestr[200];
+    char pparent[100] = "./images";
+    char parentdir[200];
+    char dirname[100];
+    char camname[100];
+    char dir[300];
 
     int once=0;
 
-    // Get time for image storage dir.
-    time_t t;
-    struct tm *tmp;
-
     // Register signal and signal handler.
     signal(SIGINT, signal_callback_handler);
-    t=time(NULL);
-    tmp=localtime(&t);
 
-    if (argc==2) { // Check for debug mode
-        if (!strcmp("-d",argv[1])) {
-            debug_mode=1;
-        } else if (!strcmp("-1",argv[1])) { // Check for one time mode
-                once=1;
-                debug_mode=1;
-        } else if (!strcmp("-h", argv[1])) { // Check for help
-            fprintf(stderr, "%s [-d] [-1] [parent directory]\n \
-                    -d\tDebug mode: Captured images are not saved.\n \
-                    -1\tOne-time mode: Captures only one image and exits. Implies -d.\n \
-                    PARENT DIRECTORY\tDirectory where camera images are stored. Timestamped subfolders are created.\n", argv[0]);
-            exit(0);
+    if (argc<3) {
+        help(argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    for (int i=1; i<argc; ++i) {
+        if (!strcmp(argv[i],"-d")) {
+            debug_mode = 1;
+        } else if (!strcmp(argv[i],"-1")) {
+            once = 1;
+            debug_mode = 1;
         }
-    } else if (argc>2) {
-        fprintf(stderr, "grabframe takes at most one argument: <parent_directory>, -d, -1.\n \
-                Use -h for help.\n");
-        exit(1);
     }
+    strncpy(camname,argv[argc-1],99);
+    strncpy(dirname,argv[argc-2],99);
 
-    if( strftime(timestr, sizeof(timestr), "%F-%H%M%S", tmp)==0 ) {
-        err_sys("strftime");
-        exit(EXIT_FAILURE);
-    }
-    if(argc==2 && debug_mode==0) // Parent dir is set
-    {
-        sprintf(pparent, "%s/images", argv[1]);
-    }
-    else
-    {
-        sprintf(pparent, "./images");
-    }
-    sprintf(parentdir, "%s/%s", pparent, timestr);
+    sprintf(parentdir, "%s/%s", pparent, dirname);
+
     if( debug_mode==0 && mkdir(parentdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
-        err_sys("mkdir %s", parentdir);
-        exit(EXIT_FAILURE);
+        if (errno!=EEXIST) {
+            err_sys("mkdir %s", parentdir);
+            exit(EXIT_FAILURE);
+        }
     }
 
     camera	= initCam(0);
     // Prepare directories to store images
-    sprintf(dir, "%s/cam0", parentdir);
+    sprintf(dir, "%s/%s", parentdir, camname);
+    if( debug_mode==0 && mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )==-1 ) {
+        err_sys("mkdir %s", dir);
+        exit(EXIT_FAILURE);
+    }
 
     int i=0;
     while(1)

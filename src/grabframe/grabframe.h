@@ -1,23 +1,20 @@
 #ifndef  grabframe_INC
 #define  grabframe_INC
-#include <uEye.h>
+#include <cv.h>
+#include <errno.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <signal.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <wchar.h>
-#ifdef __linux
-#include "ourerr.hpp"
-#include <unistd.h>
-#include <sys/fcntl.h>
-#else
-#include <direct.h>
-#endif
 #include <string.h>
-#include <time.h>
+#include <sys/fcntl.h>
 #include <sys/stat.h>
-#include <signal.h>
-#include <cv.h>
-#include <opencv2/highgui/highgui.hpp>
+#include <time.h>
+#include <uEye.h>
+#include <unistd.h>
+#include <wchar.h>
+#include "ourerr.hpp"
 
 #define UNLOGALL "unlogall\r\n"            /*  */
 #define ENABLE_EVENT_IN "EVENTINCONTROL MARK2 ENABLE\r\n"            /*  */

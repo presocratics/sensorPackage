@@ -72,12 +72,12 @@ err_ueye ( HIDS cam, int result, char *msg )
 initCam ( int cam_num )
 {
     HIDS cam;
+    char* frameMemory[SEQSIZE];
+    int memoryID[SEQSIZE];
     int frameWidth, frameHeight;
     int bitsPerPixel;
     int rv;
-    char* frameMemory[SEQSIZE];
-    int memoryID[SEQSIZE];
-    unsigned int desiredPixelClock=96;
+    unsigned int desiredPixelClock=PIXELCLOCK;
     cam = (HIDS) cam_num;
     IS_RECT rectAOI;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
@@ -139,7 +139,7 @@ initCam ( int cam_num )
         exit(EXIT_FAILURE);
     }
     // Set exposure to 30ms. This will allow us to easily shoot at 25Hz.
-    double exptime=3.;
+    double exptime=MAXSHUTTER;
     if( (rv=is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, (void*)&exptime,
                     sizeof(exptime)))!=IS_SUCCESS )
     {
@@ -185,6 +185,7 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Set event frame.");
         exit(EXIT_FAILURE);
     }
+    autoShutter(cam);
 
     return cam;
 }		/* -----  end of function initCam  ----- */
@@ -209,11 +210,10 @@ getImage ( HIDS cam, char *dir, int show )
     uint64_t framenumber;
     uint64_t u64TimestampDevice;
     UEYEIMAGEINFO ImageInfo;
+    memset(&ImageInfo, 0, sizeof(ImageInfo));
 
     // Setup file saving params.
     ImageFileParams.pwchFileName = NULL;
-    ImageFileParams.pnImageID = NULL;
-    ImageFileParams.ppcImageMem = NULL;
     ImageFileParams.nFileType = IS_IMG_BMP;
     ImageFileParams.nQuality=100;
 
@@ -223,10 +223,13 @@ getImage ( HIDS cam, char *dir, int show )
     {
         err_ueye(cam, rv, "Wait for next image.");
     }
-    else if( rv==IS_TIMED_OUT )
+    if( rv==IS_TIMED_OUT )
     {
         timedout=1;
     }
+    // Get image info immediately after capture
+    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
+        err_ueye(cam, rv, "GetImageInfo.");
 
     // Get capture status
     UEYE_CAPTURE_STATUS_INFO capStat;
@@ -264,8 +267,6 @@ getImage ( HIDS cam, char *dir, int show )
     }
     is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_RESET, NULL, 0);
     // Get info about the latest frame.
-    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
-        err_ueye(cam, rv, "GetImageInfo.");
 
     framenumber=ImageInfo.u64FrameNumber;
     u64TimestampDevice = ImageInfo.u64TimestampDevice;  
@@ -285,7 +286,7 @@ getImage ( HIDS cam, char *dir, int show )
             timedout);
 
     // Write to a Mat
-    if( show==1 )
+    if( show==1 && timedout==0 )
     {
 #ifdef BINNING
         cv::Mat image(600,800,CV_8UC1, NULL, 800);
@@ -302,6 +303,8 @@ getImage ( HIDS cam, char *dir, int show )
     // Save the image.
     if (debug_mode==0) {
         swprintf(buffer, 100, L"%s/%010d.bmp", dir, framenumber);
+        ImageFileParams.pnImageID = (UINT*)&frameId;
+        ImageFileParams.ppcImageMem = &currentFrame;
         ImageFileParams.pwchFileName = buffer;
         if( (rv=is_ImageFile( cam, IS_IMAGE_FILE_CMD_SAVE, (void*) &ImageFileParams,
                 sizeof(ImageFileParams) ))!=IS_SUCCESS )
@@ -414,6 +417,20 @@ autoGain ( HIDS cam )
     return ;
 }		/* -----  end of function autoGain  ----- */
 
+    void
+autoShutter( HIDS cam)
+{
+    int rv;
+    double on=1;
+    double maxshutter=MAXSHUTTER;
+    double empty;
+    if ((rv=is_SetAutoParameter(cam, IS_SET_AUTO_SHUTTER_MAX, &maxshutter, &empty))!=IS_SUCCESS)
+        err_ueye(cam, rv, "SetMaxShutter.");
+    if ((rv=is_SetAutoParameter(cam, IS_SET_ENABLE_AUTO_SHUTTER, &on, &empty))!=IS_SUCCESS)
+        err_ueye(cam, rv, "SetAutoShutter.");
+    return;
+}
+
 /*
  * help()
  * Prints usages.
@@ -465,6 +482,7 @@ int main(int argc, char* argv[])
     strncpy(dirname,argv[argc-2],99);
 
     camera	= initCam(0);
+    fprintf(stderr, "Camera ready.\n");
     
     sprintf(parentdir, "%s/%s", pparent, dirname);
 
@@ -486,6 +504,7 @@ int main(int argc, char* argv[])
     while(1)
     {
         // Handle key presses
+        /*
         char key;
         key=cv::waitKey(1);
         
@@ -520,7 +539,8 @@ int main(int argc, char* argv[])
 
             default:	
                 break;
-        }				/* -----  end switch  ----- */
+        }	
+        */
 
 
 

@@ -22,7 +22,7 @@
  */
 
 #include "grabframe.h"
-#define BINNING /* if defined, use binning. comment out to turn off */
+//#define BINNING /* if defined, use binning. comment out to turn off */
 // These are made global so that we can access them after SIGINT.
 HIDS camera; 
 int debug_mode = 0;
@@ -197,14 +197,13 @@ initCam ( int cam_num )
  *  STDOUT. Returns the camera time.
  * =====================================================================================
  */
-    uint64_t
-getImage ( HIDS cam, char *dir, int show )
+    void
+getImage ( HIDS cam, char *dir, uint64_t frameno, int show )
 {
     wchar_t buffer[100];
     IMAGE_FILE_PARAMS ImageFileParams;
-    int rv;
+    int rv, wrv;
     char *currentFrame;
-    int timedout;
 
     int frameId;
     uint64_t framenumber;
@@ -218,62 +217,61 @@ getImage ( HIDS cam, char *dir, int show )
     ImageFileParams.nQuality=100;
 
     // Manage memory for the next frame.
-    timedout=0;
-    if( (rv=is_WaitForNextImage(cam, (debug_mode) ? INFINITE : INFINITE, &currentFrame, &frameId))!=IS_SUCCESS )
+    if( (wrv=is_WaitForNextImage(cam, (debug_mode) ? INFINITE : INFINITE, &currentFrame, &frameId))!=IS_SUCCESS )
     {
-        err_ueye(cam, rv, "Wait for next image.");
-    }
-    if( rv==IS_TIMED_OUT )
-    {
-        timedout=1;
-    }
+        err_ueye(cam, wrv, "Wait for next image.");
+        UEYE_CAPTURE_STATUS_INFO capStat;
+        if( (rv=is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_GET, (void*) &capStat,
+                sizeof(capStat)))==IS_SUCCESS)
+        {
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_USB_TRANSFER_FAILED]!=0 )
+            {
+                fprintf(stderr, "Cam %d USB transfer failed. Operate fewer cameras on bus.\n", cam);
+            }
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_NO_DEST_MEM]!=0 )
+            {
+                fprintf(stderr, "Cam %d No destination memory. Reduce FPS.\n", cam);
+            }
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_CONVERSION_FAILED]!=0 )
+            {
+                fprintf(stderr, "Cam %d Conversion failed.\n", cam);
+            }
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_IMAGE_LOCKED] )
+            {
+                fprintf(stderr, "Cam %d All destination buffers locked. Reduce FPS.\n", cam);
+            }
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DRV_OUT_OF_BUFFERS] )
+            {
+                fprintf(stderr, "Cam %d Out of Buffers. Reduce FPS.\n", cam);
+            }
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DRV_DEVICE_NOT_READY] )
+            {
+                fprintf(stderr, "Cam %d Device not ready. Check connection.\n", cam);
+            }
+            if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DEV_TIMEOUT] )
+            {
+                fprintf(stderr, "Cam %d Image capture timeout. Reduce exposure time.\n", cam);
+            }
+            is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_RESET, NULL, 0);
+            return;
+        }
+    } 
     // Get image info immediately after capture
-    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS )
+    if( (rv=is_GetImageInfo( cam, frameId, &ImageInfo, sizeof(ImageInfo)))!=IS_SUCCESS ) {
         err_ueye(cam, rv, "GetImageInfo.");
-
-    // Get capture status
-    UEYE_CAPTURE_STATUS_INFO capStat;
-    if( (rv=is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_GET, (void*) &capStat,
-            sizeof(capStat)))==IS_SUCCESS)
-    {
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_USB_TRANSFER_FAILED]!=0 )
-        {
-            fprintf(stderr, "Cam %d USB transfer failed. Operate fewer cameras on bus.\n", cam);
-        }
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_NO_DEST_MEM]!=0 )
-        {
-            fprintf(stderr, "Cam %d No destination memory. Reduce FPS.\n", cam);
-        }
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_CONVERSION_FAILED]!=0 )
-        {
-            fprintf(stderr, "Cam %d Conversion failed.\n", cam);
-        }
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_API_IMAGE_LOCKED] )
-        {
-            fprintf(stderr, "Cam %d All destination buffers locked. Reduce FPS.\n", cam);
-        }
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DRV_OUT_OF_BUFFERS] )
-        {
-            fprintf(stderr, "Cam %d Out of Buffers. Reduce FPS.\n", cam);
-        }
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DRV_DEVICE_NOT_READY] )
-        {
-            fprintf(stderr, "Cam %d Device not ready. Check connection.\n", cam);
-        }
-        if( capStat.adwCapStatusCnt_Detail[IS_CAP_STATUS_DEV_TIMEOUT] )
-        {
-            fprintf(stderr, "Cam %d Image capture timeout. Reduce exposure time.\n", cam);
-        }
     }
-    is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_RESET, NULL, 0);
-    // Get info about the latest frame.
 
+    // Reset capture status
+    is_CaptureStatus(cam, IS_CAPTURE_STATUS_INFO_CMD_RESET, NULL, 0);
+
+    // Get info about the latest frame.
     framenumber=ImageInfo.u64FrameNumber;
     u64TimestampDevice = ImageInfo.u64TimestampDevice;  
 
     // Print logging info.
-    printf("%d,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d,%d\n", 
+    printf("%d,%lu,%lu,%020ld,%02d/%02d/%04d %02d:%02d:%02d.%03d\n", 
             cam,
+            frameno,
             framenumber,
             u64TimestampDevice,
             ImageInfo.TimestampSystem.wMonth,
@@ -282,11 +280,10 @@ getImage ( HIDS cam, char *dir, int show )
             ImageInfo.TimestampSystem.wHour,
             ImageInfo.TimestampSystem.wMinute,
             ImageInfo.TimestampSystem.wSecond,
-            ImageInfo.TimestampSystem.wMilliseconds,
-            timedout);
+            ImageInfo.TimestampSystem.wMilliseconds);
 
     // Write to a Mat
-    if( show==1 && timedout==0 )
+    if( show==1 )
     {
 #ifdef BINNING
         cv::Mat image(600,800,CV_8UC1, NULL, 800);
@@ -302,7 +299,7 @@ getImage ( HIDS cam, char *dir, int show )
     }
     // Save the image.
     if (debug_mode==0) {
-        swprintf(buffer, 100, L"%s/%010d.bmp", dir, framenumber);
+        swprintf(buffer, 100, L"%s/%010d.bmp", dir, frameno);
         ImageFileParams.pnImageID = (UINT*)&frameId;
         ImageFileParams.ppcImageMem = &currentFrame;
         ImageFileParams.pwchFileName = buffer;
@@ -315,7 +312,7 @@ getImage ( HIDS cam, char *dir, int show )
 
     if( (rv=is_UnlockSeqBuf(cam, IS_IGNORE_PARAMETER, currentFrame))!=IS_SUCCESS )
         err_ueye(cam, rv, "UnlockSeqBuf.");
-    return u64TimestampDevice;
+    return;
 }		/* -----  end of function getImage  ----- */
 
 /* 
@@ -500,7 +497,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    int i=0;
+    uint64_t i=0;
     while(1)
     {
         // Handle key presses
@@ -541,13 +538,10 @@ int main(int argc, char* argv[])
                 break;
         }	
         */
-
-
-
-        ++i;
         int show=(i%10==0);
-        getImage(camera, dir, show);
+        getImage(camera, dir, i, show);
         if (once) break;
+        ++i;
     }
     int rv;
     if( (rv=is_ExitCamera(camera))!=IS_SUCCESS )

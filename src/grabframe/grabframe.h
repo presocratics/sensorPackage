@@ -31,7 +31,7 @@
 
 void err_ueye ( HIDS cam, int result, char *msg );
 HIDS initCam ( int cam_num );
-uint64_t getImage ( HIDS cam, char *dir, int show);
+void getImage ( HIDS cam, char *dir, uint64_t frameno, int show);
 void autoGain ( HIDS cam );
 void incrShutter ( HIDS cam, double delta );
 void autoShutter( HIDS cam);

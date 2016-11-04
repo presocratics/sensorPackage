@@ -26,8 +26,8 @@
 #define CRC32_POLYNOMIAL 0xEDB88320L
 
 #define MAXOFFSET 5000
-#define MAXSHUTTER 16 
-#define MAXGAIN 50
+#define MAXSHUTTER 32
+#define MAXGAIN 20
 #define PIXELCLOCK 128
 
 void err_ueye ( HIDS cam, int result, char *msg );
@@ -37,4 +37,5 @@ void getImage ( HIDS cam, char *dir, uint64_t frameno, int show);
 void autoGain ( HIDS cam );
 void incrShutter ( HIDS cam, double delta );
 void autoShutter( HIDS cam);
+void toggleGainBoost ( HIDS cam );
 #endif   /* ----- #ifndef grabframe_INC  ----- */

@@ -132,7 +132,6 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "SetColorMode.");
         exit(EXIT_FAILURE);
     }
-    autoGain(cam);
     bitsPerPixel=8;
 #ifdef BINNING
     frameWidth=800;
@@ -222,6 +221,9 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Set AOI Auto Brightness.");
         exit(EXIT_FAILURE);
     }
+    //autoGain(cam);
+    autoShutter(cam);
+    //toggleGainBoost(cam);
 
     // Improve USB performance
     capabilities(cam);
@@ -236,7 +238,6 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Set event frame.");
         exit(EXIT_FAILURE);
     }
-    //autoShutter(cam);
 
     return cam;
 }		/* -----  end of function initCam  ----- */

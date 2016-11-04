@@ -26,10 +26,12 @@
 #define CRC32_POLYNOMIAL 0xEDB88320L
 
 #define MAXOFFSET 5000
-#define MAXSHUTTER 40 
+#define MAXSHUTTER 16 
+#define MAXGAIN 50
 #define PIXELCLOCK 128
 
 void err_ueye ( HIDS cam, int result, char *msg );
+void capabilities (HIDS cam);
 HIDS initCam ( int cam_num );
 void getImage ( HIDS cam, char *dir, uint64_t frameno, int show);
 void autoGain ( HIDS cam );

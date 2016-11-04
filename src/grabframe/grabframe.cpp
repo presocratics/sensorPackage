@@ -62,6 +62,46 @@ err_ueye ( HIDS cam, int result, char *msg )
     return;
 }		/* -----  end of function err_ueye  ----- */
 
+    void
+capabilities( HIDS cam )
+{
+    int rv;
+    UINT cap;
+    if ((rv=is_Configuration(IS_CONFIG_CMD_GET_CAPABILITIES, &cap, 4))!=IS_SUCCESS) {
+        err_ueye(cam, rv, "Configuration");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(stderr, "Capabilities: 0%o\n", cap);
+    if (cap & IS_CONFIG_CPU_IDLE_STATES_CAP_SUPPORTED) {
+        fprintf(stderr, "Function parameters for setting the processor operating states are supported.\n");
+    }
+    if (cap & IS_CONFIG_OPEN_MP_CAP_SUPPORTED) {
+        fprintf(stderr, "Function parameters to configure OpenMP are supported.\n");
+    }
+    if (cap & IS_CONFIG_INITIAL_PARAMETERSET_CAP_SUPPORTED) {
+        fprintf(stderr, "Function parameters to load camera parameters during intitialization are supported.\n");
+    }
+    if (cap & IS_CONFIG_IPO_CAP_SUPPORTED) {
+        fprintf(stderr, "Function parameters for setting the IPO thread are supported.\n");
+    }
+
+    UINT openmpenable = IS_CONFIG_OPEN_MP_ENABLE;
+    if ((rv=is_Configuration(IS_CONFIG_OPEN_MP_CMD_SET_ENABLE, &openmpenable, 4))!=IS_SUCCESS) {
+        err_ueye(cam, rv, "Enable OpenMP");
+        exit(EXIT_FAILURE);
+    }
+    UINT nAllowIpo = IS_CONFIG_IPO_ALLOWED;
+    if ((rv=is_Configuration(IS_CONFIG_IPO_CMD_SET_ALLOWED, &nAllowIpo, sizeof(nAllowIpo)))!=IS_SUCCESS) {
+        err_ueye(cam, rv, "Allow IPO.");
+        exit(EXIT_FAILURE);
+    }
+    if ((rv=is_Configuration(IS_CONFIG_IPO_CMD_GET_ALLOWED, &nAllowIpo, sizeof(nAllowIpo)))!=IS_SUCCESS) {
+        err_ueye(cam, rv, "Get IPO allowed.");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(stderr, "IPO Allowed: %d\n", nAllowIpo);
+}
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  initCam
@@ -166,15 +206,26 @@ initCam ( int cam_num )
         exit(EXIT_FAILURE);
     }
 #endif
+#ifdef BINNING
     //Setting the auto brightness Area Of Interest (AOI).
-    rectAOI.s32X = 360;
+    rectAOI.s32X = 300;
     rectAOI.s32Y = 270;
     rectAOI.s32Width = 80;
     rectAOI.s32Height = 60;
+#else
+    rectAOI.s32X = 600;
+    rectAOI.s32Y = 540;
+    rectAOI.s32Width = 160;
+    rectAOI.s32Height = 120;
+#endif
     if( (rv=is_AOI(cam,IS_AOI_AUTO_BRIGHTNESS_SET_AOI, (void*)&rectAOI, sizeof(rectAOI)))!= IS_SUCCESS ) {
         err_ueye(cam, rv, "Set AOI Auto Brightness.");
         exit(EXIT_FAILURE);
     }
+
+    // Improve USB performance
+    capabilities(cam);
+
 
     // Begin transmission
     if( (rv=is_CaptureVideo(cam, IS_DONT_WAIT))!=IS_SUCCESS ) {
@@ -185,7 +236,7 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Set event frame.");
         exit(EXIT_FAILURE);
     }
-    autoShutter(cam);
+    //autoShutter(cam);
 
     return cam;
 }		/* -----  end of function initCam  ----- */
@@ -409,6 +460,9 @@ autoGain ( HIDS cam )
     int rv;
     double on = 1;
     double empty;
+    double maxgain= MAXGAIN;
+    if ((rv=is_SetAutoParameter( cam, IS_SET_AUTO_GAIN_MAX, &maxgain, &empty))!=IS_SUCCESS)
+        err_ueye(cam, rv, "SetAutoGainMax.");
     if( (rv=is_SetAutoParameter( cam, IS_SET_ENABLE_AUTO_GAIN, &on, &empty))!=IS_SUCCESS )
         err_ueye(cam, rv, "SetAutoGain.");
     return ;

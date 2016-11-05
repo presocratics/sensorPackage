@@ -63,6 +63,99 @@ err_ueye ( HIDS cam, int result, char *msg )
 }		/* -----  end of function err_ueye  ----- */
 
     void
+auto_status( HIDS cam)
+{
+    int rv;
+    double exp;
+    
+    if ((rv=is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE, &exp, sizeof(exp)))!=IS_SUCCESS) {
+        err_ueye(cam, rv, "Get exposure info.");
+        exit(EXIT_FAILURE);
+    }
+    rv = is_SetHardwareGain(cam, IS_GET_MASTER_GAIN, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER,IS_IGNORE_PARAMETER);
+    fprintf(stderr, "Gain: %d; Exp: %f\n", rv, exp);
+}
+
+    void
+auto_info( HIDS cam )
+{
+    int rv;
+    UEYE_AUTO_INFO info;
+    if ((rv=is_GetAutoInfo(cam, &info))!=IS_SUCCESS) {
+        err_ueye(cam, rv, "Get auto info.");
+        exit(EXIT_FAILURE);
+    }
+    if (info.AutoAbility & AC_SHUTTER ) {
+        fprintf(stderr, "Auto exposure shutter is supported.\n");
+    }
+    if (info.AutoAbility & AC_SENSOR_SHUTTER) {
+        fprintf(stderr, "The sensor's internal auto exposure shutter is supported.\n");
+    }
+    if (info.AutoAbility & AC_FRAMERATE) {
+        fprintf(stderr, "Auto frame rate is supported.\n");
+    }
+    if (info.AutoAbility & AC_SENSOR_FRAMERATE) {
+        fprintf(stderr, "The sensor's internal auto frame rate is supported.\n");
+    }
+    if (info.AutoAbility & AC_GAIN) {
+        fprintf(stderr, "Auto gain control is supported.\n");
+    }
+    if (info.AutoAbility & AC_SENSOR_GAIN) {
+        fprintf(stderr, "The sensor's internal auto gain control is supported.\n");
+    }
+    if (info.AutoAbility & AC_SENSOR_AUTO_CONTRAST_CORRECTION) {
+        fprintf(stderr, "Auto contrast correction for automatic brightness control is supported.\n");
+    }
+    if (info.AutoAbility & AC_SENSOR_AUTO_BACKLIGHT_COMP) {
+        fprintf(stderr, "Backlight compensation for automatic brightness control is supported.\n");
+    }
+    if (info.AutoAbility & AC_WHITEBAL) {
+        fprintf(stderr, "Auto white balance is supported.\n");
+    }
+    if (info.AutoAbility & AC_SENSOR_WB) {
+        fprintf(stderr, "The sensor's internal auto white balance is supported.\n");
+    }
+    fprintf(stderr, "The following metering schema for auto shutter are supported:\n");
+    if (info.AShutterPhotomCaps & AS_PM_NONE) {
+        fprintf(stderr, "The entire field of view is used for metering.\n");
+    }
+    if (info.AShutterPhotomCaps & AS_PM_SENS_CENTER_AVERAGE) {
+        fprintf(stderr, "Metering is based on the entire field of view, but all areas are equally weighted and an average value is determined.\n");
+    }
+    if (info.AShutterPhotomCaps & AS_PM_SENS_CENTER_WEIGHTED) {
+        fprintf(stderr, "Metering is based on the entire field of view, but gives greater emphasis to the center area of the image.\n");
+    }
+    if (info.AShutterPhotomCaps & AS_PM_SENS_CENTER_SPOT) {
+        fprintf(stderr, "Only a small area in the image center is used for metering.\n");
+    }
+    if (info.AShutterPhotomCaps & AS_PM_SENS_PORTRAIT) {
+        fprintf(stderr, "Metering is based on that part of the field of view that corresponds to the portrait format.\n");
+    }
+    if (info.AShutterPhotomCaps & AS_PM_SENS_LANDSCAPE) {
+        fprintf(stderr, "Metering is based on that part of the field of view that corresponds to the landscape format.\n");
+    }
+    fprintf(stderr, "\n");
+
+    fprintf(stderr, "The following metering schema for auto gain are supported:\n");
+    if (info.AGainPhotomCaps & AG_PM_NONE) {
+        fprintf(stderr, "The entire field of view is used for metering.\n");
+    }
+    if (info.AGainPhotomCaps & AG_PM_SENS_CENTER_WEIGHTED) {
+        fprintf(stderr, "Metering is based on the entire field of view, but gives greater emphasis to the center area of the image.\n");
+    }
+    if (info.AGainPhotomCaps & AG_PM_SENS_CENTER_SPOT) {
+        fprintf(stderr, "Only a small area in the image center is used for metering.\n");
+    }
+    if (info.AGainPhotomCaps & AG_PM_SENS_PORTRAIT) {
+        fprintf(stderr, "Metering is based on that part of the field of view that corresponds to the portrait format.\n");
+    }
+    if (info.AGainPhotomCaps & AG_PM_SENS_LANDSCAPE) {
+        fprintf(stderr, "Metering is based on that part of the field of view that corresponds to the landscape format.\n");
+    }
+    fprintf(stderr, "\n");
+}
+
+    void
 capabilities( HIDS cam )
 {
     int rv;
@@ -221,11 +314,12 @@ initCam ( int cam_num )
         err_ueye(cam, rv, "Set AOI Auto Brightness.");
         exit(EXIT_FAILURE);
     }
-    //autoGain(cam);
     autoShutter(cam);
-    //toggleGainBoost(cam);
+    autoGain(cam);
+    toggleGainBoost(cam);
 
     // Improve USB performance
+    auto_info(cam);
     capabilities(cam);
 
 
@@ -597,6 +691,7 @@ int main(int argc, char* argv[])
         getImage(camera, dir, i, show);
         if (once) break;
         ++i;
+        //auto_status(camera);
     }
     int rv;
     if( (rv=is_ExitCamera(camera))!=IS_SUCCESS )

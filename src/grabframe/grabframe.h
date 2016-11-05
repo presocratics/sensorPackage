@@ -32,6 +32,7 @@
 
 void err_ueye ( HIDS cam, int result, char *msg );
 void capabilities (HIDS cam);
+void auto_info (HIDS cam);
 HIDS initCam ( int cam_num );
 void getImage ( HIDS cam, char *dir, uint64_t frameno, int show);
 void autoGain ( HIDS cam );

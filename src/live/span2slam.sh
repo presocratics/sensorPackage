@@ -22,7 +22,9 @@ gawk -F, -v fname=$1 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
          }
 
          BEGIN  { OFS=","
-                  fout=fname
+                  fout=fname.sensors.csv
+                  imuout=fname.imu.csv
+                  imgout=fname.img.csv
          }
          # Process RAWIMUS 
          /^40,325/ {printf("%f,ACC,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),
@@ -32,17 +34,19 @@ gawk -F, -v fname=$1 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
 
          /^40,325/ {printf("%f,ANG,%0.9f,%0.9f,%0.9f\n",  gps2gpssec($5,$6),
          -200*720*2^-31*$12,
-         200*720*2^-31*13,
+         200*720*2^-31*$13,
          -200*720*2^-31*$11) > fout}
          # Process RAWIMUS for calibration
+         # From https://www.gnu.org/software/gawk/manual/html_node/Numeric-Functions.html
+         # We can get the value of pi using atan2()
          /^40,325/ {printf("%d,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f,%0.9f\n", 
          int(1e9*gps2gpssec($5,$6)),
-         -200*720*2^-31*$12,
-         200*720*2^-31*13,
-         -200*720*2^-31*$11,
+         -200*atan2(0, -1)*4*2^-31*$12,
+         200*atan2(0, -1)*4*2^-31*$13,
+         -200*atan2(0, -1)*4*2^-31*$11,
          -200*200*2^-31*$9,
          200*200*2^-31*$10,
-         -200*200*2^-31*$8) > "imu.csv"} 
+         -200*200*2^-31*$8) > imuout} 
 
 
          # Process INSPVAS
@@ -75,6 +79,6 @@ gawk -F, -v fname=$1 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
              gps2gpssec($5,$6),$25,$26,$27,$28,$29,$30,$31,$32,$33) > fout }
 
          # Process MARK2TIME
-         /^616/ {printf("%0.9f,IMG\n", gps2gpssec($13,$14)) > "imgtimes.txt";
+         /^616/ {printf("%0.9f,IMG\n", gps2gpssec($13,$14)) > imgout;
          fflush() }
          '

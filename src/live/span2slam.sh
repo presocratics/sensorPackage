@@ -21,10 +21,11 @@ gawk -F, -v fname=$1 'function euler2qbw(roll,pitch,yaw,q,    rd, pd, yd) {
             return gpssec
          }
 
-         BEGIN  { OFS=","
-                  fout=fname.sensors.csv
-                  imuout=fname.imu.csv
-                  imgout=fname.img.csv
+         BEGIN  { 
+             OFS=","
+             fout=sprintf("%s.sensors.csv",fname)
+             imuout=sprintf("%s.imu.csv",fname)
+             imgout=sprintf("%s.img.csv",fname)
          }
          # Process RAWIMUS 
          /^40,325/ {printf("%f,ACC,%0.9f,%0.9f,%0.9f\n", gps2gpssec($5,$6),

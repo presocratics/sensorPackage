@@ -36,14 +36,26 @@ int debug_mode = 0;
     void
 signal_callback_handler ( int signum )
 {
-    printf("Caught signal %d\n", signum);
     int rv;
-    printf("Closing camera.\n");
-    if( (rv=is_ExitCamera(camera))!=IS_SUCCESS )
-        err_ueye(camera, rv, "Exit camera.");
-    if( (rv=is_DisableEvent(camera, IS_SET_EVENT_FRAME))!=IS_SUCCESS)
-        err_ueye(camera, rv, "Disable event.");
-    exit( signum );
+    switch ( signum ) {
+        case SIGINT:	
+            fprintf(stderr, "Caught signal %d\n", signum);
+            fprintf(stderr, "Closing camera.\n");
+            if( (rv=is_ExitCamera(camera))!=IS_SUCCESS )
+                err_ueye(camera, rv, "Exit camera.");
+            if( (rv=is_DisableEvent(camera, IS_SET_EVENT_FRAME))!=IS_SUCCESS)
+                err_ueye(camera, rv, "Disable event.");
+            exit( signum );
+            break;
+
+        case SIGUSR1:	
+            if( (rv=is_ForceTrigger(camera))!=IS_SUCCESS)
+                err_ueye(camera, rv, "Force trigger.");
+            break;
+
+        default:	
+            break;
+    }				/* -----  end switch  ----- */
 }		/* -----  end of function signal_callback_handler  ----- */
 
 /* 
@@ -118,9 +130,6 @@ auto_info( HIDS cam )
     fprintf(stderr, "The following metering schema for auto shutter are supported:\n");
     if (info.AShutterPhotomCaps & AS_PM_NONE) {
         fprintf(stderr, "The entire field of view is used for metering.\n");
-    }
-    if (info.AShutterPhotomCaps & AS_PM_SENS_CENTER_AVERAGE) {
-        fprintf(stderr, "Metering is based on the entire field of view, but all areas are equally weighted and an average value is determined.\n");
     }
     if (info.AShutterPhotomCaps & AS_PM_SENS_CENTER_WEIGHTED) {
         fprintf(stderr, "Metering is based on the entire field of view, but gives greater emphasis to the center area of the image.\n");
@@ -212,7 +221,7 @@ initCam ( int cam_num )
     int rv;
     unsigned int desiredPixelClock=PIXELCLOCK;
     cam = (HIDS) cam_num;
-    IS_RECT rectAOI;
+    //IS_RECT rectAOI;
     if( (rv=is_InitCamera( &cam, NULL ))!=IS_SUCCESS )
     {
         err_ueye(cam, rv, "InitCamera.");
@@ -298,6 +307,7 @@ initCam ( int cam_num )
         exit(EXIT_FAILURE);
     }
 #endif
+    /*
 #ifdef BINNING
     //Setting the auto brightness Area Of Interest (AOI).
     rectAOI.s32X = 300;
@@ -310,13 +320,16 @@ initCam ( int cam_num )
     rectAOI.s32Width = 160;
     rectAOI.s32Height = 120;
 #endif
+*/
+    /*
     if( (rv=is_AOI(cam,IS_AOI_AUTO_BRIGHTNESS_SET_AOI, (void*)&rectAOI, sizeof(rectAOI)))!= IS_SUCCESS ) {
         err_ueye(cam, rv, "Set AOI Auto Brightness.");
         exit(EXIT_FAILURE);
     }
     autoShutter(cam);
     autoGain(cam);
-    toggleGainBoost(cam);
+    */
+    //toggleGainBoost(cam);
 
     // Improve USB performance
     auto_info(cam);
@@ -611,6 +624,7 @@ int main(int argc, char* argv[])
 
     // Register signal and signal handler.
     signal(SIGINT, signal_callback_handler);
+    signal(SIGUSR1, signal_callback_handler);
 
     if (argc<3) {
         help(argv[0]);
@@ -628,6 +642,8 @@ int main(int argc, char* argv[])
     strncpy(dirname,argv[argc-2],99);
 
     camera	= initCam(0);
+    cv::namedWindow("image", CV_WINDOW_NORMAL);
+    cv::resizeWindow("image", 640, 480);
     fprintf(stderr, "Camera ready.\n");
     
     sprintf(parentdir, "%s/%s", pparent, dirname);

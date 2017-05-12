@@ -79,20 +79,22 @@ def isOK(ser):
 def unlogall(ser):
     """Turns off all other logging"""
     while 1:
+        print("Turning off mark events.")
+        if sendCommand(ser, "eventoutcontrol mark1 disable") is True:
+            break
+        time.sleep(1)
+    print("Eventoutcontrol ran successfully.")
+
+    time.sleep(1)
+
+    while 1:
         print("Running unlogall and waiting for confirmation.")
         ser.write("unlogall\r\n")
         time.sleep(1)
         if isOK(ser) is True:
             break
     print("Unlogall ran successfully.")
-    time.sleep(1)
 
-    while 1:
-        print("Turning off mark events.")
-        if sendCommand(ser, "eventoutcontrol mark1 disable") is True:
-            break
-        time.sleep(1)
-    print("Eventoutcontrol ran successfully.")
     return
 
 def logINSPVAS(ser, rate, binary=False):
@@ -107,19 +109,23 @@ def logINSPVAS(ser, rate, binary=False):
 
 def logImages(ser, fps, binary=False):
     """Sets up external trigger output at fps and turns on 2 trigger inputs"""
-    type="A"
-    if binary is True:
-        type="B"
-    msg="EVENTINCONTROL MARK2 ENABLE"
-    if sendCommand(ser, msg) is False:
-        exit("message failed: %s" % (msg))
-
-    msg="log MARK2TIME%c ONNEW" % (type)
-    if sendCommand(ser, msg) is False:
-        exit("message failed: %s" % (msg))
 
     """Convert fps to nanosecond half period"""
     T=int(500e6/int(fps))
+
+    """Convert fps to millisecond half period"""
+    tms = int(500./int(fps))
+
+    type="A"
+    if binary is True:
+        type="B"
+    msg="EVENTINCONTROL MARK2 ENABLE POSITIVE 0 %d" % (tms)
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
+
+    msg="log usb1 MARK2TIME%c ONNEW" % (type)
+    if sendCommand(ser, msg) is False:
+        exit("message failed: %s" % (msg))
 
     msg="EVENTOUTCONTROL MARK1 ENABLE POSITIVE %d %d" % (T, T)
     if sendCommand(ser, msg) is False:
